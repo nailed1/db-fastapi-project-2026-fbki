@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "hotel-utils"
+version = "0.1.0"
+description = "Utility library for hotel booking systems: pricing, loyalty tiers, availability"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/yourname/hotel-utils"
+repository = "https://github.com/yourname/hotel-utils"
+keywords = ["hotel", "booking", "pricing", "loyalty"]
+packages = [{ include = "hotel_utils", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/legacy/"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
