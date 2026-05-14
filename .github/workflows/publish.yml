@@ -1,0 +1,32 @@
+name: Publish hotel-utils to TestPyPI
+
+on:
+  push:
+    tags:
+      - "lib/v*"   # trigger with: git tag lib/v0.1.0 && git push --tags
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry==1.8.3
+
+      - name: Configure TestPyPI token
+        run: |
+          cd packages/hotel_utils
+          poetry config pypi-token.testpypi ${{ secrets.TEST_PYPI_TOKEN }}
+
+      - name: Build and publish
+        run: |
+          cd packages/hotel_utils
+          poetry build
+          poetry publish -r testpypi
