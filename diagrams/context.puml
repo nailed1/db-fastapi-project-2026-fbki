@@ -1,0 +1,30 @@
+@startuml context
+!theme plain
+title Контекстная диаграмма — Booking Management System
+
+' External actors
+actor "Турист\n(User)" as tourist
+actor "Менеджер" as manager
+actor "Горничная\n(Cleaner)" as cleaner
+actor "Администратор" as admin
+
+' External systems
+rectangle "OpenStreetMap" as osm
+rectangle "Эквайринг\n(Payment)" as payment
+rectangle "Лавка\n(Inventory)" as lavka
+
+' Central system
+rectangle "Booking\nManagement\nSystem" as bms #LightBlue {
+}
+
+' Connections
+tourist --> bms : бронирование,\nпросмотр рейтинга,\nоплата
+manager --> bms : управление персоналом,\nрасписание броней
+cleaner --> bms : получение заданий,\nобновление статуса
+admin --> bms : настройка системы,\nуправление отелями
+
+bms --> payment : проведение оплаты
+bms --> osm : геолокация отелей
+bms --> lavka : запрос на пополнение\nзапасов
+
+@enduml

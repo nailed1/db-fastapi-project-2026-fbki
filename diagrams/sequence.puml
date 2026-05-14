@@ -1,0 +1,34 @@
+@startuml sequence
+!theme plain
+title Диаграмма последовательности — Бронирование номера
+
+actor "Турист" as user
+participant "Web UI\n(HTMX)" as ui
+participant "FastAPI\n(App)" as app
+participant "hotel_utils" as lib
+database "PostgreSQL\n(DB)" as db
+
+user -> ui : Выбрать отель, даты
+ui -> app : GET /bookings/available-rooms\n?hotel_id=1&check_in=...&check_out=...
+app -> db : SELECT rooms NOT IN\n(overlapping bookings)
+db --> app : список свободных номеров
+app --> ui : JSON [{room_id, room_number, price}]
+ui --> user : Радиокнопки с номерами
+
+user -> ui : Выбрать номер, нажать "Забронировать"
+ui -> app : POST /bookings/\n{guest_id, room_id, check_in, check_out}
+app -> db : SELECT guest loyalty_tier, total_spend
+db --> app : guest data
+app -> lib : calculate_price(base_price, dates, loyalty_discount)
+lib --> app : total_price
+app -> lib : is_available(DateRange, existing_bookings)
+lib --> app : True
+app -> db : INSERT INTO bookings
+db --> app : booking_id
+app -> db : UPDATE guests SET total_spend += total_price
+app -> db : INSERT INTO audit_log
+db --> app : ok
+app --> ui : 303 Redirect → /bookings/
+ui --> user : Список бронирований\n(новая строка сверху)
+
+@enduml

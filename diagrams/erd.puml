@@ -1,0 +1,115 @@
+@startuml erd
+!theme plain
+title ERD — Hotel Booking Database
+
+entity hotels {
+  * id : SERIAL <<PK>>
+  --
+  name : VARCHAR
+  address : TEXT
+  director_name : VARCHAR
+  overbooking_limit : INT
+}
+
+entity room_categories {
+  * id : SERIAL <<PK>>
+  --
+  name : VARCHAR
+  base_price : DECIMAL
+  capacity : INT
+}
+
+entity rooms {
+  * id : SERIAL <<PK>>
+  --
+  hotel_id : INT <<FK>>
+  category_id : INT <<FK>>
+  room_number : INT
+  cleaning_status : VARCHAR
+  room_condition : VARCHAR
+}
+
+entity guests {
+  * id : SERIAL <<PK>>
+  --
+  full_name : VARCHAR
+  passport : VARCHAR
+  phone : VARCHAR
+  email : VARCHAR
+  loyalty_tier : VARCHAR
+  total_spend : DECIMAL
+}
+
+entity guest_preferences {
+  * id : SERIAL <<PK>>
+  --
+  name : VARCHAR
+}
+
+entity guest_pref_link {
+  * guest_id : INT <<FK>>
+  * preference_id : INT <<FK>>
+}
+
+entity staff {
+  * id : SERIAL <<PK>>
+  --
+  hotel_id : INT <<FK>>
+  full_name : VARCHAR
+  role : VARCHAR
+  login : VARCHAR
+  password_hash : VARCHAR
+}
+
+entity bookings {
+  * id : SERIAL <<PK>>
+  --
+  guest_id : INT <<FK>>
+  room_id : INT <<FK>>
+  staff_id : INT <<FK>>
+  check_in : DATE
+  check_out : DATE
+  total_price : DECIMAL
+  status : VARCHAR
+}
+
+entity services {
+  * id : SERIAL <<PK>>
+  --
+  name : VARCHAR
+  price : DECIMAL
+  is_package : BOOLEAN
+}
+
+entity service_orders {
+  * id : SERIAL <<PK>>
+  --
+  booking_id : INT <<FK>>
+  service_id : INT <<FK>>
+  quantity : INT
+  ordered_at : TIMESTAMP
+}
+
+entity audit_log {
+  * id : SERIAL <<PK>>
+  --
+  staff_id : INT <<FK>>
+  table_name : VARCHAR
+  old_value : TEXT
+  new_value : TEXT
+  changed_at : TIMESTAMP
+}
+
+hotels          ||--o{ rooms           : has
+room_categories ||--o{ rooms           : categorizes
+guests          ||--o{ bookings        : makes
+rooms           ||--o{ bookings        : receives
+staff           ||--o{ bookings        : processes
+bookings        ||--o{ service_orders  : includes
+services        ||--o{ service_orders  : ordered_in
+guests          ||--o{ guest_pref_link : has
+guest_preferences ||--o{ guest_pref_link : linked_to
+staff           ||--o{ audit_log       : generates
+hotels          ||--o{ staff           : employs
+
+@enduml
