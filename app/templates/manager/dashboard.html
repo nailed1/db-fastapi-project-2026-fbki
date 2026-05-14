@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Дашборд менеджера{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Дашборд менеджера</h1>
+
+<!-- Hotel stats cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+{% for h in hotel_stats %}
+<div class="bg-white rounded-xl shadow p-5 border border-gray-100">
+    <div class="text-gray-500 text-sm mb-1">{{ h.name }}</div>
+    <div class="flex justify-between mt-2">
+        <div class="text-center">
+            <div class="text-2xl font-bold text-indigo-600">{{ h.active_bookings }}</div>
+            <div class="text-xs text-gray-400">активных броней</div>
+        </div>
+        <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">{{ "%.0f"|format(h.revenue) }}</div>
+            <div class="text-xs text-gray-400">выручка ₽</div>
+        </div>
+        <div class="text-center">
+            <div class="text-2xl font-bold {% if h.dirty_rooms > 0 %}text-red-500{% else %}text-gray-400{% endif %}">
+                {{ h.dirty_rooms }}
+            </div>
+            <div class="text-xs text-gray-400">грязных номеров</div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- Quick links -->
+<div class="flex gap-3 mb-6">
+    <a href="/manager/cleaning"
+       class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-2 rounded-lg text-sm hover:bg-orange-100 transition">
+        🧹 Задания на уборку
+    </a>
+    <a href="/bookings/new"
+       class="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm hover:bg-indigo-100 transition">
+        + Новое бронирование
+    </a>
+</div>
+
+<!-- Recent bookings -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 font-medium text-gray-700">Последние 10 бронирований</div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-400 text-xs uppercase">
+            <tr>
+                <th class="px-4 py-2 text-left">#</th>
+                <th class="px-4 py-2 text-left">Гость</th>
+                <th class="px-4 py-2 text-left">Отель</th>
+                <th class="px-4 py-2 text-left">Заезд</th>
+                <th class="px-4 py-2 text-left">Выезд</th>
+                <th class="px-4 py-2 text-right">Сумма</th>
+                <th class="px-4 py-2 text-left">Статус</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+        {% for b in recent_bookings %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-gray-400">{{ b.id }}</td>
+                <td class="px-4 py-2">{{ b.guest_name }}</td>
+                <td class="px-4 py-2 text-gray-500">{{ b.hotel_name }}</td>
+                <td class="px-4 py-2">{{ b.check_in }}</td>
+                <td class="px-4 py-2">{{ b.check_out }}</td>
+                <td class="px-4 py-2 text-right font-mono">{{ "%.2f"|format(b.total_price) }} ₽</td>
+                <td class="px-4 py-2">
+                    {% if b.status == "Подтверждено" %}
+                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">{{ b.status }}</span>
+                    {% elif b.status == "Отменено" %}
+                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs">{{ b.status }}</span>
+                    {% else %}
+                        <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs">{{ b.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

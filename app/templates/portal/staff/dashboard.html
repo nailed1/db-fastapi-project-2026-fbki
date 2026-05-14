@@ -1,0 +1,131 @@
+{% extends "layouts/portal.html" %}
+{% block title %}Мои задания — HotelBook{% endblock %}
+{% block page_title %}Мои задания{% endblock %}
+
+{% block sidebar_nav %}
+<a href="/portal/staff/" class="sidebar-link active">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Задания
+</a>
+{% endblock %}
+
+{% block breadcrumb %}
+<p class="text-xs text-slate-400 mt-0.5">{{ user.db_role }}</p>
+{% endblock %}
+
+{% block content %}
+
+<!-- Schedule banner -->
+<div class="{% if schedule %}bg-indigo-600{% else %}bg-slate-700{% endif %} rounded-2xl p-4 mb-6 flex items-center gap-4 text-white">
+    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg shrink-0">📅</div>
+    {% if schedule %}
+    <div>
+        <div class="font-semibold">Сегодня: смена «{{ schedule.shift }}»</div>
+        {% if schedule.note %}<div class="text-indigo-200 text-sm mt-0.5">{{ schedule.note }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="text-slate-300">Смена на сегодня не назначена менеджером</div>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Cleaning tasks -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-700">🧹 Уборка</h2>
+            <span class="badge {% if dirty_rooms %}bg-red-100 text-red-600{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                {{ dirty_rooms|length }} номеров
+            </span>
+        </div>
+
+        {% if dirty_rooms %}
+        <div class="card divide-y divide-slate-50">
+            {% for r in dirty_rooms %}
+            <div class="flex items-center justify-between px-4 py-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg
+                        {% if r.cleaning_status == 'Dirty' %}bg-red-100{% else %}bg-amber-100{% endif %}
+                        flex items-center justify-center text-sm">
+                        {% if r.cleaning_status == 'Dirty' %}🔴{% else %}🟡{% endif %}
+                    </div>
+                    <div>
+                        <div class="font-medium text-slate-800 text-sm">Номер №{{ r.room_number }}</div>
+                        <div class="text-xs text-slate-400">
+                            {% if r.cleaning_status == 'Dirty' %}Требует уборки{% else %}В процессе уборки{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <form method="post" action="/portal/staff/clean/{{ r.id }}">
+                    <button type="submit"
+                            class="bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-600 transition font-medium">
+                        ✓ Убрано
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card p-10 text-center">
+            <div class="text-4xl mb-3">✨</div>
+            <div class="text-slate-500 font-medium">Все номера чисты!</div>
+            <div class="text-slate-400 text-sm mt-1">Заданий на уборку нет</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Replenishment -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-700">📦 Запросы на пополнение</h2>
+        </div>
+
+        <!-- New request -->
+        <div class="card p-4 mb-4">
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Новый запрос</p>
+            <form method="post" action="/portal/staff/replenishment" class="space-y-3">
+                <div>
+                    <label class="form-label">Название товара</label>
+                    <input type="text" name="item_name" required placeholder="напр. Туалетная бумага"
+                           class="form-input">
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="form-label">Количество</label>
+                        <input type="number" name="quantity" min="1" required placeholder="10"
+                               class="form-input">
+                    </div>
+                    <div class="w-28">
+                        <label class="form-label">Ед. изм.</label>
+                        <select name="unit" class="form-input">
+                            <option>шт</option><option>кг</option><option>л</option><option>уп</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Отправить запрос менеджеру</button>
+            </form>
+        </div>
+
+        <!-- My requests list -->
+        <div class="card divide-y divide-slate-50">
+            {% for r in my_requests %}
+            <div class="flex items-center justify-between px-4 py-3">
+                <div>
+                    <div class="text-sm font-medium text-slate-800">{{ r.item_name }}</div>
+                    <div class="text-xs text-slate-400">{{ r.quantity }} {{ r.unit }}</div>
+                </div>
+                <span class="badge
+                    {% if r.status == 'Одобрен' %}bg-emerald-100 text-emerald-700
+                    {% elif r.status == 'Отклонён' %}bg-red-100 text-red-600
+                    {% elif r.status == 'Выполнен' %}bg-blue-100 text-blue-700
+                    {% else %}bg-slate-100 text-slate-500{% endif %}">
+                    {{ r.status }}
+                </span>
+            </div>
+            {% else %}
+            <div class="px-4 py-8 text-center text-slate-400 text-sm">Запросов нет</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "layouts/portal.html" %}
+{% block title %}Дашборд менеджера — HotelBook{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+
+{% block sidebar_nav %}
+<a href="/portal/manager/" class="sidebar-link active">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    Дашборд
+</a>
+<a href="/portal/manager/schedule" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    Расписание
+</a>
+<a href="/bookings/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Бронирования
+</a>
+<a href="/rooms/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    Номера
+</a>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/bookings/new" class="btn-primary">+ Новое бронирование</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI row -->
+<div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+    {% for icon, label, value, color in [
+        ("📋", "Активных броней",   stats.active_bookings,      "indigo"),
+        ("💰", "Выручка ₽",         stats.revenue|int,          "emerald"),
+        ("🧹", "Грязных номеров",   stats.dirty_rooms,          "amber"),
+        ("🔧", "Новых запросов",    stats.new_service_requests, "rose"),
+        ("📦", "Заявок на склад",   stats.new_replenish,        "violet"),
+    ] %}
+    <div class="kpi-card">
+        <div class="text-xl mb-2">{{ icon }}</div>
+        <div class="text-2xl font-bold text-slate-800">{{ "{:,}".format(value|int) }}</div>
+        <div class="text-xs text-slate-400 mt-0.5">{{ label }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+    <!-- Service requests from Admin -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-700">🔧 Запросы от Администратора</h2>
+            {% if stats.new_service_requests > 0 %}
+            <span class="badge bg-rose-100 text-rose-600">{{ stats.new_service_requests }} новых</span>
+            {% endif %}
+        </div>
+        <div class="card divide-y divide-slate-50">
+            {% for r in service_requests %}
+            <div class="px-4 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-slate-800">{{ r.description }}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">от {{ r.admin_name }} · {{ r.created_at.strftime("%d.%m %H:%M") }}</div>
+                    </div>
+                    <span class="badge shrink-0
+                        {% if r.status=='Выполнен' %}bg-emerald-100 text-emerald-700
+                        {% elif r.status=='В работе' %}bg-amber-100 text-amber-700
+                        {% else %}bg-rose-100 text-rose-600{% endif %}">
+                        {{ r.status }}
+                    </span>
+                </div>
+                <form method="post" action="/portal/manager/service-request/{{ r.id }}/status"
+                      class="flex gap-2 mt-2.5">
+                    <select name="status" class="form-input flex-1 py-1.5 text-xs">
+                        <option {% if r.status=="Новый" %}selected{% endif %}>Новый</option>
+                        <option {% if r.status=="В работе" %}selected{% endif %}>В работе</option>
+                        <option {% if r.status=="Выполнен" %}selected{% endif %}>Выполнен</option>
+                    </select>
+                    <button type="submit" class="btn-secondary py-1.5 text-xs">Обновить</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="px-4 py-10 text-center text-slate-400 text-sm">Запросов нет</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Replenishment from Staff -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-slate-700">📦 Заявки на пополнение</h2>
+            {% if stats.new_replenish > 0 %}
+            <span class="badge bg-violet-100 text-violet-600">{{ stats.new_replenish }} новых</span>
+            {% endif %}
+        </div>
+        <div class="card divide-y divide-slate-50">
+            {% for r in replenish_requests %}
+            <div class="px-4 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <div class="text-sm font-medium text-slate-800">{{ r.item_name }}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">
+                            {{ r.quantity }} {{ r.unit }} · {{ r.staff_name }} ({{ r.staff_role }})
+                        </div>
+                    </div>
+                    <span class="badge shrink-0
+                        {% if r.status=='Одобрен' %}bg-emerald-100 text-emerald-700
+                        {% elif r.status=='Отклонён' %}bg-red-100 text-red-600
+                        {% elif r.status=='Выполнен' %}bg-blue-100 text-blue-700
+                        {% else %}bg-slate-100 text-slate-500{% endif %}">
+                        {{ r.status }}
+                    </span>
+                </div>
+                <form method="post" action="/portal/manager/replenishment/{{ r.id }}/status"
+                      class="flex gap-2 mt-2.5">
+                    <select name="status" class="form-input flex-1 py-1.5 text-xs">
+                        <option {% if r.status=="Новый" %}selected{% endif %}>Новый</option>
+                        <option {% if r.status=="Одобрен" %}selected{% endif %}>Одобрен</option>
+                        <option {% if r.status=="Отклонён" %}selected{% endif %}>Отклонён</option>
+                        <option {% if r.status=="Выполнен" %}selected{% endif %}>Выполнен</option>
+                    </select>
+                    <button type="submit" class="btn-secondary py-1.5 text-xs">Обновить</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="px-4 py-10 text-center text-slate-400 text-sm">Заявок нет</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

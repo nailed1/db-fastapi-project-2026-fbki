@@ -1,0 +1,112 @@
+{% extends "layouts/portal.html" %}
+{% block title %}Расписание сотрудников{% endblock %}
+{% block page_title %}Расписание сотрудников{% endblock %}
+
+{% block sidebar_nav %}
+<a href="/portal/manager/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    Дашборд
+</a>
+<a href="/portal/manager/schedule" class="sidebar-link active">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    Расписание
+</a>
+<a href="/bookings/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Бронирования
+</a>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/portal/manager/schedule?week={{ prev_week }}" class="btn-secondary">← Назад</a>
+<span class="text-sm text-slate-500 px-2 font-medium">
+    {{ days[0].strftime("%d.%m") }} — {{ days[6].strftime("%d.%m.%Y") }}
+</span>
+<a href="/portal/manager/schedule?week={{ next_week }}" class="btn-secondary">Вперёд →</a>
+{% endblock %}
+
+{% block content %}
+
+{% set shift_colors = {
+    "Утро":   "bg-amber-100 text-amber-700 border-amber-200",
+    "День":   "bg-emerald-100 text-emerald-700 border-emerald-200",
+    "Вечер":  "bg-blue-100 text-blue-700 border-blue-200",
+    "Ночь":   "bg-purple-100 text-purple-700 border-purple-200",
+} %}
+{% set day_names = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"] %}
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-100">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase w-44">Сотрудник</th>
+                    {% for i in range(7) %}
+                    {% set d = days[i] %}
+                    <th class="px-2 py-3 text-center min-w-24">
+                        <div class="text-xs font-semibold text-slate-500 uppercase">{{ day_names[i] }}</div>
+                        <div class="text-base font-bold text-slate-800">{{ d.strftime("%d") }}</div>
+                        <div class="text-xs text-slate-400">{{ d.strftime("%b") }}</div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+            {% for s in staff_list %}
+            <tr class="hover:bg-slate-50/50">
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
+                            {{ s.full_name[0] }}
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 text-sm leading-tight">{{ s.full_name }}</div>
+                            <div class="text-xs text-slate-400">{{ s.role }}</div>
+                        </div>
+                    </div>
+                </td>
+                {% for d in days %}
+                {% set iso = d.isoformat() %}
+                <td class="px-2 py-2 text-center">
+                    {% if iso in s.schedules %}
+                    {% set sc = s.schedules[iso] %}
+                    <span class="badge border {{ shift_colors.get(sc.shift, 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                        {{ sc.shift }}
+                    </span>
+                    {% else %}
+                    <form method="post" action="/portal/manager/schedule">
+                        <input type="hidden" name="staff_id"  value="{{ s.id }}">
+                        <input type="hidden" name="work_date" value="{{ iso }}">
+                        <select name="shift" onchange="this.form.submit()"
+                                class="text-xs border border-dashed border-slate-300 rounded-lg px-1 py-1 text-slate-400 bg-transparent hover:border-slate-400 focus:outline-none cursor-pointer transition-colors appearance-none w-16 text-center">
+                            <option value="">—</option>
+                            <option>Утро</option>
+                            <option>День</option>
+                            <option>Вечер</option>
+                            <option>Ночь</option>
+                        </select>
+                    </form>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="px-4 py-10 text-center text-slate-400 text-sm">
+                    Нет сотрудников в этом отеле
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="flex flex-wrap gap-3 mt-4">
+    {% for shift, cls in shift_colors.items() %}
+    <span class="badge border {{ cls }}">{{ shift }}</span>
+    {% endfor %}
+    <span class="text-xs text-slate-400 ml-1 self-center">— выберите смену из выпадающего списка</span>
+</div>
+{% endblock %}

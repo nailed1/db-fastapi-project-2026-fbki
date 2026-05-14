@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Главная — HotelBook{% endblock %}
+
+{% block content %}
+<div class="text-center py-16">
+    <h1 class="text-4xl font-bold text-indigo-700 mb-4">Hotel Booking Management</h1>
+    <p class="text-gray-500 mb-10 text-lg">Система управления бронированием отелей</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+        <a href="/bookings/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
+            <div class="text-4xl mb-3">📋</div>
+            <div class="font-semibold text-lg">Бронирования</div>
+            <div class="text-gray-400 text-sm mt-1">Просмотр и создание</div>
+        </a>
+        <a href="/guests/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
+            <div class="text-4xl mb-3">👤</div>
+            <div class="font-semibold text-lg">Гости</div>
+            <div class="text-gray-400 text-sm mt-1">База клиентов</div>
+        </a>
+        <a href="/rooms/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
+            <div class="text-4xl mb-3">🚪</div>
+            <div class="font-semibold text-lg">Номера</div>
+            <div class="text-gray-400 text-sm mt-1">Статус и уборка</div>
+        </a>
+        <a href="/manager/dashboard" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
+            <div class="text-4xl mb-3">📊</div>
+            <div class="font-semibold text-lg">Дашборд</div>
+            <div class="text-gray-400 text-sm mt-1">Статистика</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

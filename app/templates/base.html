@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hotel Booking{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif']}}}}</script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
+
+<!-- Navigation -->
+<nav class="bg-slate-900 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
+        <a href="/" class="text-lg font-bold tracking-tight flex items-center gap-2 shrink-0">
+            🏨 <span>HotelBook</span>
+        </a>
+
+        {# current_user may be undefined in legacy routes — use default filter #}
+        {% set cu = current_user if current_user is defined else none %}
+        {% if cu %}
+            {% if cu.system_role == "manager" or cu.system_role == "admin" %}
+                <a href="/bookings/"  class="text-slate-300 hover:text-white transition text-sm">Бронирования</a>
+                <a href="/rooms/"     class="text-slate-300 hover:text-white transition text-sm">Номера</a>
+                <a href="/guests/"    class="text-slate-300 hover:text-white transition text-sm">Гости</a>
+            {% endif %}
+
+            <div class="ml-auto flex items-center gap-3">
+                <a href="{% if cu.system_role == 'tourist' %}/portal/tourist/
+                          {% elif cu.system_role == 'staff' %}/portal/staff/
+                          {% elif cu.system_role == 'manager' %}/portal/manager/
+                          {% else %}/portal/admin/{% endif %}"
+                   class="text-slate-300 hover:text-white text-sm transition">← Портал</a>
+                <span class="text-slate-400 text-sm">{{ cu.full_name }}</span>
+                <form method="post" action="/auth/logout" class="inline">
+                    <button class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-sm transition">
+                        Выйти
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <div class="ml-auto">
+                <a href="/auth/login"
+                   class="bg-indigo-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition text-sm">
+                    Войти
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Main content -->
+<main class="max-w-7xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>
