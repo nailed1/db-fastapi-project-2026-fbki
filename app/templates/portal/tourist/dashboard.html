@@ -14,12 +14,12 @@
 {% endblock %}
 
 {% block header_actions %}
-<a href="/portal/tourist/book" class="btn-primary">+ Забронировать номер</a>
+<a href="/portal/tourist/book" class="btn-primary">+ Забронировать</a>
 {% endblock %}
 
 {% block content %}
 
-<!-- Loyalty card + stats -->
+<!-- Loyalty + stats -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     <!-- Loyalty card -->
     <div class="md:col-span-1 rounded-2xl p-5 text-white relative overflow-hidden
@@ -32,15 +32,18 @@
             <div class="text-xs uppercase tracking-widest opacity-70 mb-1">Уровень лояльности</div>
             <div class="text-3xl font-bold mb-1">{{ guest.loyalty_tier }}</div>
             <div class="text-sm opacity-75">Потрачено: {{ "{:,.0f}".format(guest.total_spend|float) }} ₽</div>
-            <div class="mt-3 text-xs opacity-60">
-                {% if guest.loyalty_tier == 'Silver' %}До Gold ещё {{ "{:,.0f}".format(30000 - guest.total_spend|float) }} ₽
-                {% elif guest.loyalty_tier == 'Gold' %}До Platinum ещё {{ "{:,.0f}".format(100000 - guest.total_spend|float) }} ₽
+            <div class="mt-3 text-xs opacity-70">
+                {% if guest.loyalty_tier == 'Silver' %}
+                    {% set to_next = 30000 - guest.total_spend|float %}
+                    {% if to_next > 0 %}До Gold ещё {{ "{:,.0f}".format(to_next) }} ₽{% endif %}
+                {% elif guest.loyalty_tier == 'Gold' %}
+                    {% set to_next = 100000 - guest.total_spend|float %}
+                    {% if to_next > 0 %}До Platinum ещё {{ "{:,.0f}".format(to_next) }} ₽{% endif %}
                 {% else %}🏆 Максимальный уровень{% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Stats -->
     {% set confirmed = bookings | selectattr("status", "eq", "Подтверждено") | list | length %}
     {% set completed = bookings | selectattr("status", "eq", "Завершено") | list | length %}
     <div class="kpi-card flex items-center gap-4">
@@ -61,45 +64,43 @@
 
 <!-- Hotels -->
 <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Наши отели</h2>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
 {% for h in hotels %}
-<div class="card overflow-hidden hover:shadow-md transition-shadow">
-    <!-- Placeholder hotel image -->
-    <div class="h-28 bg-gradient-to-br
+<a href="/portal/tourist/hotel/{{ h.id }}" class="card overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group">
+    <div class="h-32 bg-gradient-to-br relative
         {% if loop.index % 3 == 1 %}from-indigo-400 to-blue-600
         {% elif loop.index % 3 == 2 %}from-emerald-400 to-teal-600
-        {% else %}from-orange-400 to-rose-500{% endif %}
-        flex items-end p-4">
-        <span class="text-white font-bold text-sm drop-shadow">{{ h.name }}</span>
+        {% else %}from-orange-400 to-rose-500{% endif %}">
+        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+        <div class="absolute bottom-3 left-4 right-4">
+            <span class="text-white font-bold text-base drop-shadow">{{ h.name }}</span>
+        </div>
+        <span class="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1">
+            <svg class="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            {{ h.avg_rating }}
+        </span>
     </div>
     <div class="p-4">
-        <div class="text-slate-400 text-xs mb-3">📍 {{ h.address }}</div>
-        <div class="flex items-center gap-1 mb-3">
-            {% for i in range(5) %}
-            <svg class="w-3.5 h-3.5 {% if i < h.avg_rating|int %}text-amber-400{% else %}text-slate-200{% endif %}"
-                 fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-            </svg>
-            {% endfor %}
-            <span class="text-xs text-slate-500 ml-1">{{ h.avg_rating }} ({{ h.review_count }})</span>
+        <div class="text-slate-400 text-xs mb-3 truncate">📍 {{ h.address }}</div>
+        <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500">{{ h.review_count }} отзывов</span>
+            <span class="text-xs text-indigo-600 font-medium">Подробнее →</span>
         </div>
-        <a href="/portal/tourist/book?hotel_id={{ h.id }}" class="btn-primary block text-center w-full">
-            Забронировать
-        </a>
     </div>
-</div>
+</a>
 {% endfor %}
 </div>
 
 <!-- My bookings -->
 <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Мои бронирования</h2>
 <div class="card overflow-hidden">
+    {% if bookings %}
+    <div class="overflow-x-auto">
     <table class="data-table">
         <thead>
             <tr>
                 <th>Отель / Номер</th>
-                <th>Заезд</th>
-                <th>Выезд</th>
+                <th>Заезд → Выезд</th>
                 <th>Ночей</th>
                 <th class="text-right">Сумма</th>
                 <th>Статус</th>
@@ -111,43 +112,39 @@
         <tr>
             <td>
                 <div class="font-medium text-slate-800">{{ b.hotel_name }}</div>
-                <div class="text-slate-400 text-xs">Номер №{{ b.room_number }} · {{ b.category }}</div>
+                <div class="text-slate-400 text-xs">№{{ b.room_number }} · {{ b.category }}</div>
             </td>
-            <td class="text-slate-600">{{ b.check_in.strftime("%d.%m.%Y") }}</td>
-            <td class="text-slate-600">{{ b.check_out.strftime("%d.%m.%Y") }}</td>
+            <td class="text-slate-600 text-xs">
+                {{ b.check_in.strftime("%d.%m.%y") }}<br>↓<br>{{ b.check_out.strftime("%d.%m.%y") }}
+            </td>
             <td class="text-slate-500">{{ (b.check_out - b.check_in).days }}</td>
             <td class="text-right font-semibold text-slate-800">{{ "{:,.0f}".format(b.total_price|float) }} ₽</td>
             <td>
                 {% if b.status == "Подтверждено" %}
-                    <span class="badge bg-emerald-100 text-emerald-700">Подтверждено</span>
+                    <span class="badge bg-emerald-100 text-emerald-700">{{ b.status }}</span>
                 {% elif b.status == "Завершено" %}
-                    <span class="badge bg-blue-100 text-blue-700">Завершено</span>
+                    <span class="badge bg-blue-100 text-blue-700">{{ b.status }}</span>
                 {% else %}
-                    <span class="badge bg-red-100 text-red-600">Отменено</span>
+                    <span class="badge bg-rose-100 text-rose-600">{{ b.status }}</span>
                 {% endif %}
             </td>
             <td>
-                {% if b.status == "Завершено" %}
-                <a href="/portal/tourist/review/{{ b.id }}"
-                   class="text-xs text-indigo-600 hover:underline font-medium">★ Отзыв</a>
-                {% elif b.status == "Подтверждено" %}
-                <form method="post" action="/bookings/{{ b.id }}/cancel">
-                    <button class="text-xs text-red-400 hover:text-red-600 font-medium"
-                            onclick="return confirm('Отменить бронирование?')">Отменить</button>
-                </form>
-                {% endif %}
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="7" class="py-12 text-center">
-                <div class="text-3xl mb-2">🏨</div>
-                <div class="text-slate-400 text-sm">У вас пока нет бронирований</div>
-                <a href="/portal/tourist/book" class="btn-primary inline-block mt-3">Забронировать номер</a>
+                <a href="/portal/tourist/booking/{{ b.id }}" class="text-xs text-indigo-600 hover:underline font-medium">
+                    Открыть →
+                </a>
             </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🏨</div>
+        <p class="text-slate-700 font-medium">У вас пока нет бронирований</p>
+        <p class="text-sm text-slate-400 mb-4">Самое время отправиться в путешествие</p>
+        <a href="/portal/tourist/book" class="btn-primary">Забронировать первый номер</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

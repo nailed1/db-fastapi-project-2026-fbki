@@ -1,0 +1,97 @@
+{% extends "layouts/portal.html" %}
+{% block title %}{{ hotel.name }} — HotelBook{% endblock %}
+{% block page_title %}{{ hotel.name }}{% endblock %}
+{% block breadcrumb %}<p class="text-xs text-slate-400 mt-0.5"><a href="/portal/tourist/" class="hover:text-indigo-600">Главная</a> / {{ hotel.name }}</p>{% endblock %}
+
+{% block sidebar_nav %}
+<a href="/portal/tourist/" class="sidebar-link">🏠 Главная</a>
+<a href="/portal/tourist/book" class="sidebar-link">+ Забронировать</a>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/portal/tourist/book?hotel_id={{ hotel.id }}" class="btn-primary">Забронировать</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="rounded-2xl overflow-hidden mb-6 relative h-56 bg-gradient-to-br
+    {% set h_id = hotel.id %}
+    {% if h_id % 3 == 1 %}from-indigo-500 to-blue-700
+    {% elif h_id % 3 == 2 %}from-emerald-500 to-teal-700
+    {% else %}from-orange-500 to-rose-600{% endif %}">
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+    <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+        <div class="text-3xl font-bold mb-1 drop-shadow">{{ hotel.name }}</div>
+        <div class="text-white/90 flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            {{ hotel.address }}
+        </div>
+        <div class="flex items-center gap-1">
+            {% for i in range(5) %}
+            <svg class="w-4 h-4 {% if i < hotel.avg_rating|int %}text-amber-300{% else %}text-white/30{% endif %}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            {% endfor %}
+            <span class="text-sm text-white/90 ml-1">{{ hotel.avg_rating }} · {{ hotel.review_count }} отзывов</span>
+        </div>
+    </div>
+</div>
+
+<!-- Room categories -->
+<h2 class="text-lg font-semibold text-slate-800 mb-3">Категории номеров</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+{% for r in rooms_by_cat %}
+<div class="card p-5 hover:shadow-md transition-shadow">
+    <div class="flex items-start justify-between mb-3">
+        <div>
+            <div class="font-semibold text-slate-800">{{ r.name }}</div>
+            <div class="text-xs text-slate-400">До {{ r.capacity }} гостей · {{ r.room_count }} номеров</div>
+        </div>
+        <span class="badge bg-indigo-50 text-indigo-600">{{ r.capacity }} 🛏</span>
+    </div>
+    <div class="flex items-end justify-between">
+        <div>
+            <div class="text-2xl font-bold text-slate-800">{{ "{:,.0f}".format(r.base_price|float) }} ₽</div>
+            <div class="text-xs text-slate-400">за ночь от</div>
+        </div>
+        <a href="/portal/tourist/book?hotel_id={{ hotel.id }}" class="btn-primary text-xs px-3 py-1.5">Выбрать</a>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- Reviews -->
+<h2 class="text-lg font-semibold text-slate-800 mb-3">Отзывы гостей</h2>
+{% if reviews %}
+<div class="space-y-3">
+{% for r in reviews %}
+<div class="card p-4">
+    <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center text-white font-bold shrink-0">
+            {{ r.full_name[0] }}
+        </div>
+        <div class="flex-1">
+            <div class="flex items-center justify-between mb-1">
+                <div class="font-medium text-slate-800 text-sm">{{ r.full_name }}</div>
+                <div class="flex items-center gap-0.5">
+                    {% for i in range(5) %}
+                    <svg class="w-3.5 h-3.5 {% if i < r.rating %}text-amber-400{% else %}text-slate-200{% endif %}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if r.comment %}
+            <p class="text-sm text-slate-600">{{ r.comment }}</p>
+            {% endif %}
+            <p class="text-xs text-slate-400 mt-1">{{ r.created_at.strftime("%d.%m.%Y") }}</p>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state card">
+    <div class="empty-state-icon">💬</div>
+    <p class="text-slate-500 font-medium">Пока нет отзывов</p>
+    <p class="text-sm text-slate-400">Станьте первым, кто оставит отзыв</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -184,4 +184,142 @@ async def submit_review(
         ON CONFLICT (booking_id) DO UPDATE SET rating = $4, comment = $5
     """, booking_id, booking["guest_id"], booking["hotel_id"], rating, comment or None)
 
-    return RedirectResponse(url="/portal/tourist/", status_code=303)
+    from app.auth.flash import flash
+    resp = RedirectResponse(url="/portal/tourist/", status_code=303)
+    flash(resp, "Спасибо за отзыв!", "success")
+    return resp
+
+
+@router.get("/hotel/{hotel_id}", response_class=HTMLResponse)
+async def hotel_detail(
+    request: Request,
+    hotel_id: int,
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    hotel = await db.fetchrow("""
+        SELECT h.*, COALESCE(ROUND(AVG(r.rating), 1), 0) AS avg_rating,
+               COUNT(r.id) AS review_count
+        FROM hotels h LEFT JOIN reviews r ON r.hotel_id = h.id
+        WHERE h.id = $1 GROUP BY h.id
+    """, hotel_id)
+    if not hotel:
+        raise HTTPException(404, "Отель не найден")
+
+    rooms_by_cat = await db.fetch("""
+        SELECT rc.id, rc.name, rc.base_price, rc.capacity,
+               COUNT(r.id) AS room_count
+        FROM room_categories rc
+        JOIN rooms r ON r.category_id = rc.id
+        WHERE r.hotel_id = $1 AND r.room_condition = 'Исправно'
+        GROUP BY rc.id ORDER BY rc.base_price
+    """, hotel_id)
+
+    reviews = await db.fetch("""
+        SELECT r.rating, r.comment, r.created_at, g.full_name
+        FROM reviews r JOIN guests g ON g.id = r.guest_id
+        WHERE r.hotel_id = $1 ORDER BY r.created_at DESC LIMIT 10
+    """, hotel_id)
+
+    return templates.TemplateResponse("portal/tourist/hotel.html", {
+        "request": request, "current_user": user, "user": user,
+        "hotel": hotel, "rooms_by_cat": rooms_by_cat, "reviews": reviews,
+    })
+
+
+@router.get("/booking/{booking_id}", response_class=HTMLResponse)
+async def booking_detail(
+    request: Request,
+    booking_id: int,
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    booking = await db.fetchrow("""
+        SELECT b.*, h.name AS hotel_name, h.address AS hotel_address,
+               r.room_number, rc.name AS category_name, rc.capacity,
+               g.full_name
+        FROM bookings b
+        JOIN rooms r ON r.id = b.room_id
+        JOIN hotels h ON h.id = r.hotel_id
+        JOIN room_categories rc ON rc.id = r.category_id
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not booking:
+        raise HTTPException(404, "Бронирование не найдено")
+
+    orders = await db.fetch("""
+        SELECT so.id, so.quantity, so.ordered_at,
+               s.name, s.price, s.is_package
+        FROM service_orders so JOIN services s ON s.id = so.service_id
+        WHERE so.booking_id = $1 ORDER BY so.ordered_at DESC
+    """, booking_id)
+    services = await db.fetch(
+        "SELECT id, name, price, is_package FROM services ORDER BY is_package DESC, price"
+    )
+    return templates.TemplateResponse("portal/tourist/booking_detail.html", {
+        "request": request, "current_user": user, "user": user,
+        "booking": booking, "orders": orders, "services": services,
+    })
+
+
+@router.post("/booking/{booking_id}/service", response_class=HTMLResponse)
+async def order_service(
+    booking_id: int,
+    service_id: int = Form(...),
+    quantity: int = Form(1),
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    # verify the booking belongs to this user
+    own = await db.fetchval("""
+        SELECT 1 FROM bookings b
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not own:
+        raise HTTPException(404, "Бронирование не найдено")
+
+    await db.execute("""
+        INSERT INTO service_orders (booking_id, service_id, quantity)
+        VALUES ($1, $2, $3)
+    """, booking_id, service_id, max(1, quantity))
+
+    from app.auth.flash import flash
+    resp = RedirectResponse(url=f"/portal/tourist/booking/{booking_id}", status_code=303)
+    flash(resp, "Услуга добавлена к бронированию", "success")
+    return resp
+
+
+@router.post("/booking/{booking_id}/cancel", response_class=HTMLResponse)
+async def cancel_booking(
+    booking_id: int,
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    own = await db.fetchrow("""
+        SELECT b.id, b.status, b.total_price, g.id AS guest_id FROM bookings b
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not own:
+        raise HTTPException(404, "Бронирование не найдено")
+    if own["status"] != "Подтверждено":
+        from app.auth.flash import flash
+        resp = RedirectResponse(url="/portal/tourist/", status_code=303)
+        flash(resp, "Это бронирование нельзя отменить", "warning")
+        return resp
+
+    await db.execute("UPDATE bookings SET status = 'Отменено' WHERE id = $1", booking_id)
+    await db.execute(
+        "UPDATE guests SET total_spend = GREATEST(0, total_spend - $1) WHERE id = $2",
+        own["total_price"], own["guest_id"],
+    )
+
+    from app.auth.flash import flash
+    resp = RedirectResponse(url="/portal/tourist/", status_code=303)
+    flash(resp, "Бронирование отменено", "info")
+    return resp
