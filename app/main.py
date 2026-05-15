@@ -48,7 +48,7 @@ def _patched_response(name: str, context: dict, *args, **kwargs):  # type: ignor
     return _orig_response(name, context, *args, **kwargs)
 
 
-# ── Routers ───────────────────────────────────────────────────────────────────
+# Routers
 app.include_router(auth_router.router)
 app.include_router(portal_tourist.router)
 app.include_router(portal_staff.router)

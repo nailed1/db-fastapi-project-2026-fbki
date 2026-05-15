@@ -73,16 +73,6 @@ make lib-publish-test  # опубликовать hotel_utils на TestPyPI
 └── pyproject.toml        # Poetry
 ```
 
-## Публикация библиотеки на TestPyPI
-
-```bash
-# Добавить токен
-poetry config pypi-token.testpypi <TOKEN>
-
-# Собрать и опубликовать
-make lib-publish-test
-```
-
 ## Диаграммы
 
 Исходники PlantUML в `diagrams/`. Рендер:
