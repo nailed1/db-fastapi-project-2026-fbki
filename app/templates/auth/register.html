@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация — HotelBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif']}}}}</script>
+</head>
+<body class="bg-slate-900 min-h-screen flex font-sans">
+
+    <!-- Left panel — branding -->
+    <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 to-teal-900 flex-col justify-between p-12 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-20 left-20 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-10 w-64 h-64 bg-emerald-300 rounded-full blur-3xl"></div>
+        </div>
+        <div class="relative">
+            <div class="text-4xl mb-3">🏨</div>
+            <div class="text-white text-3xl font-bold">Создать аккаунт</div>
+            <div class="text-emerald-100 mt-2 text-lg">Начните путешествовать со скидками</div>
+        </div>
+        <div class="relative space-y-6">
+            {% for icon, title, desc in [
+                ("⭐", "Программа лояльности", "Silver → Gold → Platinum со скидками до 15%"),
+                ("⚡", "Быстрое бронирование", "Выбор номера и оплата за пару кликов"),
+                ("🎁", "Эксклюзивные акции", "Сезонные скидки и пакетные предложения"),
+            ] %}
+            <div class="flex items-start gap-4">
+                <div class="text-2xl mt-0.5">{{ icon }}</div>
+                <div>
+                    <div class="text-white font-semibold">{{ title }}</div>
+                    <div class="text-emerald-100 text-sm mt-0.5">{{ desc }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="flex-1 flex items-center justify-center p-6 sm:p-8 overflow-y-auto">
+        <div class="w-full max-w-md py-8">
+            <div class="lg:hidden text-center mb-6">
+                <div class="text-4xl mb-2">🏨</div>
+                <div class="text-white text-2xl font-bold">HotelBook</div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-2xl p-7">
+                <h2 class="text-xl font-bold text-slate-800 mb-1">Регистрация гостя</h2>
+                <p class="text-slate-400 text-sm mb-6">Заполните данные для создания аккаунта</p>
+
+                {% if error %}
+                <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span class="text-red-700 text-sm">{{ error }}</span>
+                </div>
+                {% endif %}
+
+                {% set f = form if form is defined else {} %}
+                <form method="post" action="/auth/register" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">ФИО *</label>
+                        <input type="text" name="full_name" required autofocus value="{{ f.full_name or '' }}"
+                               placeholder="Иванов Иван Иванович"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Паспортные данные *</label>
+                        <input type="text" name="passport" required value="{{ f.passport or '' }}"
+                               placeholder="4500 123456"
+                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Телефон</label>
+                            <input type="tel" name="phone" value="{{ f.phone or '' }}" placeholder="+7-900-..."
+                                   class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                            <input type="email" name="email" value="{{ f.email or '' }}"
+                                   class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100">
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Учётные данные</p>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Логин *</label>
+                            <input type="text" name="login" required value="{{ f.login or '' }}" placeholder="myusername"
+                                   pattern="[a-zA-Z0-9_]{3,}"
+                                   class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Пароль *</label>
+                                <input type="password" name="password" required minlength="6"
+                                       class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Повторите *</label>
+                                <input type="password" name="password_confirm" required minlength="6"
+                                       class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 active:scale-95 transition-all mt-2">
+                        Зарегистрироваться →
+                    </button>
+                </form>
+
+                <p class="text-center text-sm text-slate-500 mt-5">
+                    Уже есть аккаунт?
+                    <a href="/auth/login" class="text-emerald-600 hover:underline font-medium">Войти</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
