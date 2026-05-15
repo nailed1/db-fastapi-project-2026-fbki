@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.api.dependencies import get_db
+from app.auth.dependencies import CurrentUser, get_current_user
 from app.database import Database
 from hotel_utils import DateRange, calculate_price, discount_for_tier, is_available, tier_from_spend
 
@@ -16,7 +17,11 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def list_bookings(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
+async def list_bookings(
+    request: Request,
+    db: Database = Depends(get_db),
+    current_user: CurrentUser | None = Depends(get_current_user),
+) -> HTMLResponse:
     rows = await db.fetch("""
         SELECT b.id, b.check_in, b.check_out, b.total_price, b.status,
                g.full_name AS guest_name,
@@ -29,16 +34,23 @@ async def list_bookings(request: Request, db: Database = Depends(get_db)) -> HTM
         ORDER BY b.check_in DESC
     """)
     return templates.TemplateResponse(
-        "booking/list.html", {"request": request, "bookings": rows}
+        "booking/list.html",
+        {"request": request, "current_user": current_user, "bookings": rows},
     )
 
 
 @router.get("/new", response_class=HTMLResponse)
-async def new_booking_form(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
+async def new_booking_form(
+    request: Request,
+    db: Database = Depends(get_db),
+    current_user: CurrentUser | None = Depends(get_current_user),
+) -> HTMLResponse:
     hotels = await db.fetch("SELECT id, name FROM hotels ORDER BY name")
     guests = await db.fetch("SELECT id, full_name FROM guests ORDER BY full_name")
     return templates.TemplateResponse(
-        "booking/create.html", {"request": request, "hotels": hotels, "guests": guests}
+        "booking/create.html",
+        {"request": request, "current_user": current_user,
+         "hotels": hotels, "guests": guests},
     )
 
 

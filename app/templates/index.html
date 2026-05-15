@@ -1,32 +1,73 @@
-{% extends "base.html" %}
-{% block title %}Главная — HotelBook{% endblock %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelBook — Управление отелями</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter']}}}}</script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 font-sans">
 
-{% block content %}
-<div class="text-center py-16">
-    <h1 class="text-4xl font-bold text-indigo-700 mb-4">Hotel Booking Management</h1>
-    <p class="text-gray-500 mb-10 text-lg">Система управления бронированием отелей</p>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-        <a href="/bookings/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
-            <div class="text-4xl mb-3">📋</div>
-            <div class="font-semibold text-lg">Бронирования</div>
-            <div class="text-gray-400 text-sm mt-1">Просмотр и создание</div>
-        </a>
-        <a href="/guests/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
-            <div class="text-4xl mb-3">👤</div>
-            <div class="font-semibold text-lg">Гости</div>
-            <div class="text-gray-400 text-sm mt-1">База клиентов</div>
-        </a>
-        <a href="/rooms/" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
-            <div class="text-4xl mb-3">🚪</div>
-            <div class="font-semibold text-lg">Номера</div>
-            <div class="text-gray-400 text-sm mt-1">Статус и уборка</div>
-        </a>
-        <a href="/manager/dashboard" class="bg-white rounded-xl shadow p-6 hover:shadow-lg transition border border-gray-100">
-            <div class="text-4xl mb-3">📊</div>
-            <div class="font-semibold text-lg">Дашборд</div>
-            <div class="text-gray-400 text-sm mt-1">Статистика</div>
-        </a>
+<div class="max-w-5xl mx-auto px-4 py-12">
+    <!-- Hero -->
+    <div class="text-center mb-16">
+        <div class="inline-block text-6xl mb-4">🏨</div>
+        <h1 class="text-5xl font-bold text-slate-800 mb-3">HotelBook</h1>
+        <p class="text-xl text-slate-500 mb-8">Современная система управления отелями</p>
+        <div class="flex gap-3 justify-center">
+            <a href="/auth/login" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30">
+                Войти →
+            </a>
+            <a href="/auth/register" class="bg-white text-slate-700 px-6 py-3 rounded-xl font-semibold hover:bg-slate-50 border border-slate-200 transition">
+                Создать аккаунт
+            </a>
+        </div>
     </div>
+
+    <!-- Roles grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {% for icon, title, desc, color in [
+            ("👤", "Турист",        "Бронируйте номера, оставляйте отзывы", "emerald"),
+            ("🧹", "Сотрудник",     "Получайте задания и запрашивайте товары", "amber"),
+            ("📋", "Менеджер",      "Управляйте персоналом и аналитикой",     "indigo"),
+            ("⚙️", "Администратор", "Контроль над системой и пользователями", "rose"),
+        ] %}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-3">{{ icon }}</div>
+            <h3 class="font-bold text-slate-800 mb-1">{{ title }}</h3>
+            <p class="text-sm text-slate-500">{{ desc }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Features -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <h2 class="text-xl font-bold text-slate-800 mb-5">Возможности системы</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for icon, title, desc in [
+                ("⭐", "Программа лояльности", "Silver, Gold, Platinum со скидками до 15%"),
+                ("📊", "Аналитика в реальном времени", "Дашборд с выручкой и загрузкой"),
+                ("🔧", "Управление обслуживанием", "Запросы между ролями автоматически"),
+                ("📅", "Расписание сотрудников", "Назначение смен на неделю"),
+                ("🏨", "Несколько отелей", "Управляйте сетью из одного интерфейса"),
+                ("🔒", "Ролевой доступ", "JWT-авторизация с разделением прав"),
+            ] %}
+            <div>
+                <div class="text-2xl mb-2">{{ icon }}</div>
+                <h4 class="font-semibold text-slate-800 mb-1">{{ title }}</h4>
+                <p class="text-sm text-slate-500">{{ desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <p class="text-center text-xs text-slate-400 mt-12">
+        Учебный проект · FastAPI + HTMX + PostgreSQL · 2026
+    </p>
 </div>
-{% endblock %}
+
+</body>
+</html>

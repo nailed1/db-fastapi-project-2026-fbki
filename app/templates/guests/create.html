@@ -1,41 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Новый гость{% endblock %}
+{% block page_title %}Добавить гостя{% endblock %}
 
 {% block content %}
 <div class="max-w-lg mx-auto">
-    <h1 class="text-2xl font-bold mb-6">Новый гость</h1>
-
-    <form method="post" action="/guests/" class="bg-white rounded-xl shadow p-6 space-y-4">
+<form method="post" action="/guests/" class="card p-6 space-y-4">
+    <div>
+        <label class="form-label">ФИО *</label>
+        <input type="text" name="full_name" required autofocus class="form-input"
+               placeholder="Иванов Иван Иванович">
+    </div>
+    <div>
+        <label class="form-label">Паспортные данные *</label>
+        <input type="text" name="passport" required class="form-input" placeholder="4500 123456">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">ФИО *</label>
-            <input type="text" name="full_name" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Паспортные данные *</label>
-            <input type="text" name="passport" required placeholder="4500 123456"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
-            <input type="tel" name="phone" placeholder="+7-900-000-0000"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <label class="form-label">Телефон</label>
+            <input type="tel" name="phone" class="form-input" placeholder="+7-...">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" name="email"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input">
         </div>
-        <div class="flex gap-3 pt-2">
-            <button type="submit"
-                    class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition font-medium">
-                Сохранить
-            </button>
-            <a href="/guests/"
-               class="flex-1 text-center border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition text-gray-600">
-                Отмена
-            </a>
-        </div>
-    </form>
+    </div>
+    <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn-primary flex-1">Сохранить</button>
+        <a href="/guests/" class="btn-secondary flex-1 text-center">Отмена</a>
+    </div>
+</form>
 </div>
 {% endblock %}

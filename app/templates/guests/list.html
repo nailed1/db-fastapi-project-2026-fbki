@@ -1,47 +1,49 @@
 {% extends "base.html" %}
 {% block title %}Гости{% endblock %}
+{% block page_title %}Гости{% endblock %}
+{% block header_actions %}
+<a href="/guests/new" class="btn-primary">+ Добавить гостя</a>
+{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Гости</h1>
-    <a href="/guests/new"
-       class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-        + Новый гость
-    </a>
-</div>
-
-<div class="bg-white rounded-xl shadow overflow-hidden">
-    <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+<div class="card overflow-hidden">
+    {% if guests %}
+    <div class="overflow-x-auto">
+    <table class="data-table">
+        <thead>
             <tr>
-                <th class="px-4 py-3 text-left">ФИО</th>
-                <th class="px-4 py-3 text-left">Телефон</th>
-                <th class="px-4 py-3 text-left">Email</th>
-                <th class="px-4 py-3 text-left">Лояльность</th>
-                <th class="px-4 py-3 text-right">Всего потрачено</th>
+                <th>ФИО</th>
+                <th>Контакты</th>
+                <th>Лояльность</th>
+                <th class="text-right">Всего потрачено</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody>
         {% for g in guests %}
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-3 font-medium">{{ g.full_name }}</td>
-                <td class="px-4 py-3 text-gray-500">{{ g.phone or "—" }}</td>
-                <td class="px-4 py-3 text-gray-500">{{ g.email or "—" }}</td>
-                <td class="px-4 py-3">
-                    {% if g.loyalty_tier == "Platinum" %}
-                        <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium">Platinum</span>
-                    {% elif g.loyalty_tier == "Gold" %}
-                        <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-medium">Gold</span>
-                    {% else %}
-                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-medium">Silver</span>
-                    {% endif %}
-                </td>
-                <td class="px-4 py-3 text-right font-mono">{{ "%.2f"|format(g.total_spend) }} ₽</td>
-            </tr>
-        {% else %}
-            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Гостей нет</td></tr>
+        <tr>
+            <td class="font-medium text-slate-800">{{ g.full_name }}</td>
+            <td class="text-xs text-slate-500">
+                {% if g.phone %}📞 {{ g.phone }}<br>{% endif %}
+                {% if g.email %}✉ {{ g.email }}{% endif %}
+                {% if not g.phone and not g.email %}<span class="text-slate-300">—</span>{% endif %}
+            </td>
+            <td>
+                {% if g.loyalty_tier == "Platinum" %}<span class="badge bg-purple-100 text-purple-700">Platinum</span>
+                {% elif g.loyalty_tier == "Gold" %}<span class="badge bg-amber-100 text-amber-700">Gold</span>
+                {% else %}<span class="badge bg-slate-100 text-slate-600">Silver</span>{% endif %}
+            </td>
+            <td class="text-right font-semibold">{{ "{:,.0f}".format(g.total_spend|float) }} ₽</td>
+        </tr>
         {% endfor %}
         </tbody>
     </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">👥</div>
+        <p class="text-slate-700 font-medium">Гостей пока нет</p>
+        <a href="/guests/new" class="btn-primary mt-3">Добавить первого</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

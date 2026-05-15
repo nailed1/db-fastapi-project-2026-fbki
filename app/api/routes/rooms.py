@@ -1,10 +1,11 @@
 """Rooms routes — list and cleaning status update."""
 
-from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.api.dependencies import get_db
+from app.auth.dependencies import CurrentUser, get_current_user
 from app.database import Database
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
@@ -12,7 +13,11 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def list_rooms(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
+async def list_rooms(
+    request: Request,
+    db: Database = Depends(get_db),
+    current_user: CurrentUser | None = Depends(get_current_user),
+) -> HTMLResponse:
     rows = await db.fetch("""
         SELECT r.id, r.room_number, r.cleaning_status, r.room_condition,
                rc.name AS category_name, rc.base_price,
@@ -23,7 +28,8 @@ async def list_rooms(request: Request, db: Database = Depends(get_db)) -> HTMLRe
         ORDER BY h.name, r.room_number
     """)
     return templates.TemplateResponse(
-        "rooms/list.html", {"request": request, "rooms": rows}
+        "rooms/list.html",
+        {"request": request, "current_user": current_user, "rooms": rows},
     )
 
 
@@ -35,10 +41,8 @@ async def update_cleaning(
 ) -> HTMLResponse:
     valid = {"Clean", "Dirty", "Cleaning"}
     if status not in valid:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=f"Invalid status. Choose from {valid}")
     await db.execute(
         "UPDATE rooms SET cleaning_status = $1 WHERE id = $2", status, room_id
     )
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/rooms/", status_code=303)
