@@ -43,18 +43,21 @@ async def dashboard(
     """, guest["id"])
 
     hotels = await db.fetch("""
-        SELECT h.id, h.name, h.address,
+        SELECT h.id, h.name, h.address, h.latitude, h.longitude,
                COALESCE(ROUND(AVG(rv.rating), 1), 0) AS avg_rating,
                COUNT(rv.id) AS review_count
         FROM hotels h
         LEFT JOIN reviews rv ON rv.hotel_id = h.id
-        GROUP BY h.id, h.name, h.address
+        GROUP BY h.id, h.name, h.address, h.latitude, h.longitude
         ORDER BY h.name
     """)
 
+    def to_json_safe(row):
+        return {k: float(v) if isinstance(v, Decimal) else v for k, v in dict(row).items()}
+    
     return templates.TemplateResponse("portal/tourist/dashboard.html", {
         "request": request, "current_user": user, "user": user, "guest": guest,
-        "bookings": bookings, "hotels": hotels,
+        "bookings": bookings, "hotels": [to_json_safe(h) for h in hotels],
     })
 
 

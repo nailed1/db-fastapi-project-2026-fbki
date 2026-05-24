@@ -62,11 +62,66 @@
     </div>
 </div>
 
+<!-- Map -->
+<h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Наши отели на карте</h2>
+<div class="card overflow-hidden mb-6">
+    <div id="hotels-map" style="height: 360px; z-index: 0;"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+    const hotels = {{ hotels | tojson }};
+    const coords = hotels.filter(h => h.latitude && h.longitude);
+    if (!coords.length) return;
+
+    const map = L.map('hotels-map', { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const markers = {};
+    coords.forEach(h => {
+        const marker = L.marker([h.latitude, h.longitude])
+            .addTo(map)
+            .bindPopup(
+                `<div style="min-width:160px">
+                    <b>${h.name}</b><br>
+                    <span style="color:#64748b;font-size:12px">${h.address}</span><br><br>
+                    <a href="/portal/tourist/hotel/${h.id}"
+                       style="color:#4f46e5;font-weight:600;font-size:13px">
+                        Подробнее →
+                    </a>
+                </div>`
+            );
+        markers[h.id] = marker;
+    });
+
+    // fit map to show all markers
+    const group = L.featureGroup(Object.values(markers));
+    map.fitBounds(group.getBounds().pad(0.3));
+
+    // clicking a hotel card focuses the map marker
+    document.addEventListener('click', e => {
+        const card = e.target.closest('[data-hotel-id]');
+        if (!card) return;
+        const id = parseInt(card.dataset.hotelId);
+        if (markers[id]) {
+            map.setView(markers[id].getLatLng(), 14, { animate: true });
+            markers[id].openPopup();
+            document.getElementById('hotels-map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+})();
+</script>
+
 <!-- Hotels -->
 <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Наши отели</h2>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
 {% for h in hotels %}
-<a href="/portal/tourist/hotel/{{ h.id }}" class="card overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group">
+<a href="/portal/tourist/hotel/{{ h.id }}" data-hotel-id="{{ h.id }}" class="card overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group">
     <div class="h-32 bg-gradient-to-br relative
         {% if loop.index % 3 == 1 %}from-indigo-400 to-blue-600
         {% elif loop.index % 3 == 2 %}from-emerald-400 to-teal-600
