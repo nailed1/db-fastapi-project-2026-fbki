@@ -51,26 +51,68 @@ make lib-publish-test  # опубликовать hotel_utils на TestPyPI
 ## Структура проекта
 
 ```
-├── app/                  # FastAPI приложение
-│   ├── api/routes/       # маршруты (bookings, rooms, guests, staff)
-│   ├── templates/        # Jinja2 + HTMX шаблоны
-│   ├── db/               # migrate.py, seed.py
-│   └── main.py
+├── app/                          # FastAPI приложение
+│   ├── api/
+│   │   ├── routes/               # маршруты
+│   │   │   ├── auth.py           # вход / регистрация
+│   │   │   ├── bookings.py       # бронирования
+│   │   │   ├── rooms.py          # номера
+│   │   │   ├── guests.py         # гости
+│   │   │   ├── staff.py          # персонал
+│   │   │   ├── portal_admin.py   # портал администратора
+│   │   │   ├── portal_manager.py # портал менеджера
+│   │   │   ├── portal_staff.py   # портал горничной / техника
+│   │   │   └── portal_tourist.py # портал туриста
+│   │   └── dependencies.py       # общие зависимости маршрутов
+│   ├── auth/                     # JWT-авторизация
+│   │   ├── jwt.py                # выдача и проверка токенов
+│   │   ├── flash.py              # flash-сообщения
+│   │   └── dependencies.py       # current_user и проверка ролей
+│   ├── db/                       # работа с БД
+│   │   ├── migrate.py            # применение миграций
+│   │   ├── seed.py               # загрузка тестовых данных
+│   │   └── setup_passwords.py    # хеширование паролей персонала
+│   ├── models/
+│   │   └── schemas.py            # Pydantic-схемы
+│   ├── templates/                # Jinja2 + HTMX шаблоны
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── layouts/
+│   │   │   └── portal.html       # базовый лейаут портала
+│   │   ├── auth/                 # login.html, register.html
+│   │   ├── booking/              # list.html, create.html
+│   │   ├── rooms/                # list.html
+│   │   ├── guests/               # list.html, create.html
+│   │   ├── manager/              # dashboard.html, cleaning.html
+│   │   └── portal/               # дашборды по ролям
+│   │       ├── admin/            # dashboard.html, users.html
+│   │       ├── manager/          # dashboard.html, schedule.html
+│   │       ├── staff/            # dashboard.html
+│   │       └── tourist/          # dashboard.html, hotel.html, book.html,
+│   │                             # booking_detail.html, review.html
+│   ├── static/                   # статика (CSS, JS)
+│   ├── config.py                 # настройки приложения
+│   ├── database.py               # пул соединений asyncpg
+│   └── main.py                   # точка входа FastAPI
 ├── packages/
-│   └── hotel_utils/      # утилитная библиотека → TestPyPI
+│   └── hotel_utils/              # утилитная библиотека → TestPyPI
 │       └── src/hotel_utils/
 │           ├── pricing.py
 │           ├── loyalty.py
 │           └── availability.py
-├── migrations/           # SQL (001_init, 002_seed)
+├── migrations/                   # SQL-миграции
+│   ├── 001_init.sql              # схема БД (11 таблиц)
+│   ├── 002_seed.sql              # тестовые данные
+│   └── 003_roles_auth.sql        # роли, авторизация, отзывы, расписания
 ├── tests/
-│   ├── unit/             # тесты hotel_utils (без БД)
-│   └── integration/      # тесты FastAPI routes
-├── docs/                 # Sphinx документация
-├── diagrams/             # PlantUML (context, sequence, ERD)
-├── docker/               # Dockerfile + docker-compose
+│   ├── unit/                     # тесты hotel_utils (без БД)
+│   └── integration/              # тесты FastAPI routes
+├── docs/                         # Sphinx документация
+├── diagrams/                     # PlantUML (context, sequence, ERD)
+├── docker/                       # Dockerfile + docker-compose + entrypoint.sh
+├── .github/workflows/            # CI (ci.yml) + публикация (publish.yml)
 ├── Makefile
-└── pyproject.toml        # Poetry
+└── pyproject.toml                # Poetry
 ```
 
 ## Диаграммы
