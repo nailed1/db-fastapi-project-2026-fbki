@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     debug: bool = True
     app_host: str = "0.0.0.0"
     app_port: int = 8000
+    
+    yookassa_shop_id: str = ""
+    yookassa_secret_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

@@ -57,6 +57,15 @@
             {% if booking.status == 'Подтверждено' %}
             <div class="mt-5 pt-5 border-t border-slate-100 flex gap-2"
                  x-data="{ showCancel: false }">
+
+                {% if booking.payment_status == 'Не оплачено' %}
+                <form method="post" action="/portal/tourist/booking/{{ booking.id }}/pay">
+                    <button type="submit" class="btn-primary">💳 Оплатить {{ "{:,.0f}".format(booking.total_price|float) }} ₽</button>
+                </form>
+                {% else %}
+                <span class="badge bg-emerald-100 text-emerald-700 px-4 py-2">✓ Оплачено</span>
+                {% endif %}
+                 
                 <button @click="showCancel = true" class="btn-secondary text-rose-600 hover:bg-rose-50">
                     Отменить бронирование
                 </button>

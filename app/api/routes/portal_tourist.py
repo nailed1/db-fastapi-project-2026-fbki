@@ -296,6 +296,52 @@ async def order_service(
     return resp
 
 
+@router.post("/booking/{booking_id}/pay")
+async def pay_booking(
+    booking_id: int,
+    request: Request,
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    booking = await db.fetchrow("""
+        SELECT b.id, b.total_price, b.payment_status
+        FROM bookings b
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not booking:
+        raise HTTPException(404, "Бронирование не найдено")
+    if booking["payment_status"] == "Оплачено":
+        raise HTTPException(400, "Уже оплачено")
+
+    from app.payments import create_payment
+    return_url = str(request.base_url) + f"portal/tourist/payment/callback?booking_id={booking_id}"
+    pay_url = create_payment(float(booking["total_price"]), booking_id, return_url)
+    return RedirectResponse(url=pay_url, status_code=303)
+
+
+@router.get("/payment/callback")
+async def payment_callback(booking_id: int) -> HTMLResponse:
+    return RedirectResponse(url=f"/portal/tourist/booking/{booking_id}", status_code=303)
+
+
+@router.post("/payment/webhook")
+async def payment_webhook(
+    request: Request,
+    db: Database = Depends(get_db),
+) -> dict:
+    body = await request.json()
+    if body.get("event") == "payment.succeeded":
+        booking_id = body["object"]["metadata"].get("booking_id")
+        if booking_id:
+            await db.execute(
+                "UPDATE bookings SET payment_status = 'Оплачено' WHERE id = $1",
+                int(booking_id),
+            )
+    return {"ok": True}
+
+
 @router.post("/booking/{booking_id}/cancel", response_class=HTMLResponse)
 async def cancel_booking(
     booking_id: int,

@@ -17,6 +17,8 @@ from app.database import close_pool, get_pool
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    from app.payments import init_yookassa
+    init_yookassa()
     await get_pool()
     yield
     await close_pool()
