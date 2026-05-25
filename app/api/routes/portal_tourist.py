@@ -96,7 +96,7 @@ async def create_booking(
     # Availability check
     existing = await db.fetch("""
         SELECT check_in, check_out FROM bookings
-        WHERE room_id = $1 AND status = 'Подтверждено'
+        WHERE room_id = $1 AND status IN ('Подтверждено', 'Ожидает оплаты')
     """, room_id)
     requested = DateRange(check_in, check_out)
     if not is_available(requested, [DateRange(r["check_in"], r["check_out"]) for r in existing]):
@@ -116,7 +116,7 @@ async def create_booking(
 
     booking_id = await db.fetchval("""
         INSERT INTO bookings (guest_id, room_id, check_in, check_out, total_price, status)
-        VALUES ($1, $2, $3, $4, $5, 'Подтверждено') RETURNING id
+        VALUES ($1, $2, $3, $4, $5, 'Ожидает оплаты') RETURNING id
     """, guest["id"], room_id, check_in, check_out, total)
 
     await db.execute(
@@ -336,7 +336,7 @@ async def payment_webhook(
         booking_id = body["object"]["metadata"].get("booking_id")
         if booking_id:
             await db.execute(
-                "UPDATE bookings SET payment_status = 'Оплачено' WHERE id = $1",
+                "UPDATE bookings SET payment_status = 'Оплачено', status = 'Подтверждено' WHERE id = $1",
                 int(booking_id),
             )
     return {"ok": True}
@@ -356,7 +356,7 @@ async def cancel_booking(
     """, booking_id, user.id)
     if not own:
         raise HTTPException(404, "Бронирование не найдено")
-    if own["status"] != "Подтверждено":
+    if own["status"] not in ("Подтверждено", "Ожидает оплаты"):
         from app.auth.flash import flash
         resp = RedirectResponse(url="/portal/tourist/", status_code=303)
         flash(resp, "Это бронирование нельзя отменить", "warning")

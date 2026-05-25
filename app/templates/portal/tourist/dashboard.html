@@ -177,6 +177,8 @@
             <td>
                 {% if b.status == "Подтверждено" %}
                     <span class="badge bg-emerald-100 text-emerald-700">{{ b.status }}</span>
+                {% elif b.status == 'Ожидает оплаты' %}
+                    <span class="badge bg-amber-100 text-amber-700">{{ b.status }}</span>
                 {% elif b.status == "Завершено" %}
                     <span class="badge bg-blue-100 text-blue-700">{{ b.status }}</span>
                 {% else %}
