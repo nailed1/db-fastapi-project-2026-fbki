@@ -1,201 +1,222 @@
-<!DOCTYPE html>
-<html lang="ru" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}HotelBook{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
-                    animation: {
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'fade-in':  'fadeIn 0.2s ease-out',
-                    },
-                    keyframes: {
-                        slideIn: { '0%': { transform: 'translateX(100%)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } },
-                        fadeIn:  { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer components {
-            .sidebar-link { @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all text-sm font-medium; }
-            .sidebar-link.active { @apply bg-indigo-600 text-white shadow-lg shadow-indigo-500/30; }
-            .kpi-card { @apply bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow; }
-            .data-table { @apply w-full text-sm; }
-            .data-table thead { @apply text-xs uppercase text-slate-400 border-b border-slate-100 bg-slate-50/50; }
-            .data-table thead th { @apply px-4 py-3 text-left font-semibold tracking-wider; }
-            .data-table tbody tr { @apply border-b border-slate-50 hover:bg-slate-50/60 transition-colors; }
-            .data-table tbody td { @apply px-4 py-3 align-middle; }
-            .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
-            .btn-primary { @apply inline-flex items-center justify-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed; }
-            .btn-secondary { @apply inline-flex items-center justify-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-200 active:scale-95 transition-all; }
-            .btn-danger { @apply inline-flex items-center justify-center gap-1.5 bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-rose-600 active:scale-95 transition-all; }
-            .btn-success { @apply inline-flex items-center justify-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-emerald-600 active:scale-95 transition-all; }
-            .form-input { @apply w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all placeholder:text-slate-400; }
-            .form-label { @apply block text-sm font-medium text-slate-700 mb-1.5; }
-            .card { @apply bg-white rounded-2xl border border-slate-100 shadow-sm; }
-            .empty-state { @apply flex flex-col items-center justify-center py-12 px-4 text-center; }
-            .empty-state-icon { @apply w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl mb-3; }
-        }
-    </style>
-</head>
-<body class="h-full bg-slate-50 font-sans antialiased text-slate-800"
-      x-data="{ sidebarOpen: false, toasts: [] }"
-      @toast.window="toasts.push({id: Date.now(), ...$event.detail}); setTimeout(() => toasts.shift(), 4000)">
-
-<div class="flex h-screen overflow-hidden">
-
-    <!-- ── Sidebar (mobile overlay) ─────────────────────────────────── -->
-    <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
-         x-transition.opacity
-         class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"></div>
-
-    <!-- ── Sidebar ─────────────────────────────────────────────────── -->
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-           class="fixed lg:relative z-50 w-64 h-full shrink-0 bg-slate-900 flex flex-col overflow-y-auto transition-transform duration-300">
-
-        <!-- Logo + user -->
-        <div class="px-5 py-5 border-b border-slate-800">
-            <a href="/" class="flex items-center gap-2.5">
-                <span class="text-2xl">🏨</span>
-                <span class="text-white font-bold text-lg tracking-tight">HotelBook</span>
-            </a>
-            {% if current_user %}
-            <div class="mt-4 flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/50">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                    {% if current_user.system_role == 'tourist' %}bg-gradient-to-br from-emerald-400 to-emerald-600
-                    {% elif current_user.system_role == 'staff' %}bg-gradient-to-br from-amber-400 to-amber-600
-                    {% elif current_user.system_role == 'manager' %}bg-gradient-to-br from-indigo-400 to-indigo-600
-                    {% else %}bg-gradient-to-br from-rose-400 to-rose-600{% endif %} text-white">
-                    {{ current_user.full_name[0] }}
-                </div>
-                <div class="min-w-0">
-                    <div class="text-slate-100 text-sm font-medium truncate">{{ current_user.full_name }}</div>
-                    <div class="text-slate-500 text-xs">
-                        {% if current_user.system_role == 'tourist' %}Гость
-                        {% elif current_user.system_role == 'staff' %}{{ current_user.db_role }}
-                        {% elif current_user.system_role == 'manager' %}Менеджер
-                        {% else %}Администратор{% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Nav -->
-        <nav class="flex-1 px-3 py-4 space-y-1">
-            {% block sidebar_nav %}{% endblock %}
-        </nav>
-
-        <!-- Logout -->
-        {% if current_user %}
-        <div class="px-3 py-3 border-t border-slate-800">
-            <form method="post" action="/auth/logout">
-                <button class="sidebar-link w-full justify-start text-slate-400 hover:text-rose-400 hover:bg-rose-500/10">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    Выйти
-                </button>
-            </form>
-        </div>
-        {% endif %}
-    </aside>
-
-    <!-- ── Main ────────────────────────────────────────────────────── -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-
-        <!-- Top bar -->
-        <header class="bg-white border-b border-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-3 min-w-0">
-                <!-- Mobile hamburger -->
-                <button @click="sidebarOpen = !sidebarOpen"
-                        class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <div class="min-w-0">
-                    <h1 class="text-base sm:text-lg font-semibold text-slate-800 truncate">{% block page_title %}{% endblock %}</h1>
-                    {% block breadcrumb %}{% endblock %}
-                </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                <!-- HTMX global loading spinner -->
-                <div id="htmx-indicator" class="htmx-indicator">
-                    <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
-                {% block header_actions %}{% endblock %}
-            </div>
-        </header>
-
-        <!-- Content -->
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
-</div>
-
-<!-- ── Toast notifications ──────────────────────────────────────────── -->
-<div class="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none">
-    <template x-for="toast in toasts" :key="toast.id">
-        <div class="bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 flex items-center gap-3 min-w-72 animate-slide-in pointer-events-auto"
-             :class="{
-                'border-l-4 border-l-emerald-500': toast.type === 'success',
-                'border-l-4 border-l-rose-500':    toast.type === 'error',
-                'border-l-4 border-l-amber-500':   toast.type === 'warning',
-                'border-l-4 border-l-indigo-500':  toast.type === 'info'
-             }">
-            <span class="text-xl"
-                  x-text="toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : toast.type === 'warning' ? '⚠️' : 'ℹ️'"></span>
-            <span class="text-sm text-slate-700 font-medium" x-text="toast.message"></span>
-            <button @click="toasts.splice(toasts.indexOf(toast), 1)"
-                    class="ml-auto text-slate-400 hover:text-slate-600">✕</button>
-        </div>
-    </template>
-</div>
-
-<!-- ── Flash messages from cookie ───────────────────────────────────── -->
-<script>
-    // Read 'flash' cookie set by backend redirects, fire toast, then clear
-    (function() {
-        const match = document.cookie.match(/(?:^|;\s*)flash=([^;]+)/);
-        if (match) {
-            try {
-                const data = JSON.parse(decodeURIComponent(match[1]));
-                window.dispatchEvent(new CustomEvent('toast', { detail: data }));
-                document.cookie = 'flash=; path=/; max-age=0';
-            } catch (e) {}
-        }
-    })();
-
-    // HTMX: catch errors and show toast
-    document.body.addEventListener('htmx:responseError', function(evt) {
-        let msg = 'Ошибка запроса';
-        try { msg = JSON.parse(evt.detail.xhr.responseText).detail || msg; } catch(e) {}
-        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
-    });
-</script>
-
-<style>
-    [x-cloak] { display: none !important; }
-    .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
-    .htmx-request .htmx-indicator,
-    .htmx-request.htmx-indicator { opacity: 1; }
-</style>
-
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HotelBook{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/portal.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['IBM Plex Sans', 'ui-sans-serif', 'system-ui'] },
+                    colors: {
+                        corporate: {
+                            50: '#f4f6f9',
+                            100: '#e8ecf1',
+                            200: '#d1d9e3',
+                            500: '#4a6278',
+                            700: '#1e3a5f',
+                            800: '#152a45',
+                            900: '#0f1f33',
+                        }
+                    },
+                    borderRadius: {
+                        corporate: '2px',
+                    },
+                    animation: {
+                        'slide-in': 'slideIn 0.25s ease-out',
+                        'fade-in':  'fadeIn 0.15s ease-out',
+                    },
+                    keyframes: {
+                        slideIn: { '0%': { transform: 'translateX(100%)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } },
+                        fadeIn:  { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .sidebar-link { @apply flex items-center gap-3 px-3 py-2.5 rounded-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium border-l-2 border-transparent; }
+            .sidebar-link.active { @apply bg-slate-800 text-white border-l-slate-400; }
+            .kpi-card { @apply bg-white rounded-sm border border-slate-200 p-5; }
+            .data-table { @apply w-full text-sm; }
+            .data-table thead { @apply text-xs uppercase text-slate-500 border-b border-slate-200 bg-slate-50; }
+            .data-table thead th { @apply px-4 py-3 text-left font-semibold tracking-wider; }
+            .data-table tbody tr { @apply border-b border-slate-100 hover:bg-slate-50 transition-colors; }
+            .data-table tbody td { @apply px-4 py-3 align-middle; }
+            .badge { @apply inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium border; }
+            .btn-primary { @apply inline-flex items-center justify-center gap-1.5 bg-corporate-700 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-corporate-800 transition-colors border border-corporate-800 disabled:opacity-50 disabled:cursor-not-allowed; }
+            .btn-secondary { @apply inline-flex items-center justify-center gap-1.5 bg-white text-slate-700 px-4 py-2 rounded-sm text-sm font-medium hover:bg-slate-50 transition-colors border border-slate-300; }
+            .btn-danger { @apply inline-flex items-center justify-center gap-1.5 bg-slate-700 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-slate-800 transition-colors border border-slate-800; }
+            .btn-success { @apply inline-flex items-center justify-center gap-1.5 bg-corporate-700 text-white px-3 py-1.5 rounded-sm text-xs font-medium hover:bg-corporate-800 transition-colors border border-corporate-800; }
+            .form-input { @apply w-full border border-slate-300 rounded-sm px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-corporate-700 focus:border-corporate-700 transition-colors placeholder:text-slate-400; }
+            .form-label { @apply block text-sm font-medium text-slate-700 mb-1; }
+            .card { @apply bg-white rounded-sm border border-slate-200; }
+            .empty-state { @apply flex flex-col items-center justify-center py-12 px-4 text-center; }
+            .empty-state-icon { @apply w-14 h-14 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 mb-3; }
+        }
+    </style>
+</head>
+<body class="h-full bg-[#f4f5f7] font-sans antialiased text-slate-800"
+      x-data="{ sidebarOpen: false, toasts: [] }"
+      @toast.window="toasts.push({id: Date.now(), ...$event.detail}); setTimeout(() => toasts.shift(), 4000)">
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- ── Sidebar (mobile overlay) ─────────────────────────────────── -->
+    <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
+         x-transition.opacity
+         class="fixed inset-0 bg-slate-900/60 z-40 lg:hidden"></div>
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+           class="fixed lg:relative z-50 w-64 h-full shrink-0 bg-[#1a2332] flex flex-col overflow-y-auto transition-transform duration-300 border-r border-slate-700">
+
+        <!-- Logo + user -->
+        <div class="px-5 py-4 border-b border-slate-700">
+            <a href="/" class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-sm bg-corporate-700 flex items-center justify-center shrink-0 border border-slate-600">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </span>
+                <span class="text-white font-semibold text-base tracking-tight">HotelBook</span>
+            </a>
+            {% if current_user %}
+            <div class="mt-4 flex items-center gap-2.5 p-2 rounded-sm bg-slate-800/80 border border-slate-700">
+                <div class="w-8 h-8 rounded-sm flex items-center justify-center text-xs font-semibold shrink-0 bg-slate-600 text-white border border-slate-500">
+                    {{ current_user.full_name[0] }}
+                </div>
+                <div class="min-w-0">
+                    <div class="text-slate-100 text-sm font-medium truncate">{{ current_user.full_name }}</div>
+                    <div class="text-slate-500 text-xs">
+                        {% if current_user.system_role == 'tourist' %}Гость
+                        {% elif current_user.system_role == 'staff' %}{{ current_user.db_role }}
+                        {% elif current_user.system_role == 'manager' %}Менеджер
+                        {% else %}Администратор{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            {% block sidebar_nav %}{% endblock %}
+        </nav>
+
+        <!-- Logout -->
+        {% if current_user %}
+        <div class="px-3 py-3 border-t border-slate-700">
+            <form method="post" action="/auth/logout">
+                <button class="sidebar-link w-full justify-start text-slate-500 hover:text-slate-200 hover:bg-slate-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Выйти
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </aside>
+
+    <!-- ── Main ────────────────────────────────────────────────────── -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Top bar -->
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <!-- Mobile hamburger -->
+                <button @click="sidebarOpen = !sidebarOpen"
+                        class="lg:hidden p-1.5 rounded-sm hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
+                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg font-semibold text-slate-900 truncate">{% block page_title %}{% endblock %}</h1>
+                    {% block breadcrumb %}{% endblock %}
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <!-- HTMX global loading spinner -->
+                <div id="htmx-indicator" class="htmx-indicator">
+                    <svg class="animate-spin h-4 w-4 text-corporate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<!-- ── Toast notifications ──────────────────────────────────────────── -->
+<div class="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none">
+    <template x-for="toast in toasts" :key="toast.id">
+        <div class="bg-white rounded-sm border border-slate-200 px-4 py-3 flex items-center gap-3 min-w-72 animate-slide-in pointer-events-auto shadow-sm"
+             :class="{
+                'border-l-4 border-l-slate-600': toast.type === 'success',
+                'border-l-4 border-l-red-700':    toast.type === 'error',
+                'border-l-4 border-l-amber-700':   toast.type === 'warning',
+                'border-l-4 border-l-corporate-700':  toast.type === 'info'
+             }">
+            <span class="shrink-0 w-5 h-5 flex items-center justify-center">
+                <svg x-show="toast.type === 'success'" class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <svg x-show="toast.type === 'error'" class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg x-show="toast.type === 'warning'" class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                <svg x-show="toast.type === 'info' || !['success','error','warning'].includes(toast.type)" class="w-4 h-4 text-corporate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </span>
+            <span class="text-sm text-slate-700 font-medium" x-text="toast.message"></span>
+            <button @click="toasts.splice(toasts.indexOf(toast), 1)"
+                    class="ml-auto text-slate-400 hover:text-slate-700 p-0.5" aria-label="Закрыть">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </template>
+</div>
+
+<!-- ── Flash messages from cookie ───────────────────────────────────── -->
+<script>
+    // Read 'flash' cookie set by backend redirects, fire toast, then clear
+    (function() {
+        const match = document.cookie.match(/(?:^|;\s*)flash=([^;]+)/);
+        if (match) {
+            try {
+                const data = JSON.parse(decodeURIComponent(match[1]));
+                window.dispatchEvent(new CustomEvent('toast', { detail: data }));
+                document.cookie = 'flash=; path=/; max-age=0';
+            } catch (e) {}
+        }
+    })();
+
+    // HTMX: catch errors and show toast
+    document.body.addEventListener('htmx:responseError', function(evt) {
+        let msg = 'Ошибка запроса';
+        try { msg = JSON.parse(evt.detail.xhr.responseText).detail || msg; } catch(e) {}
+        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+    });
+</script>
+
+<style>
+    [x-cloak] { display: none !important; }
+    .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+    .htmx-request .htmx-indicator,
+    .htmx-request.htmx-indicator { opacity: 1; }
+</style>
+
+</body>
+</html>

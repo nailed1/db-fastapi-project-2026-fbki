@@ -1,0 +1,29 @@
+/**
+ * HotelBook — корпоративная дизайн-система (B2B)
+ * Подключается из layouts/portal.html и страниц без layout.
+ */
+
+:root {
+    --hb-primary: #1e3a5f;
+    --hb-primary-hover: #152a45;
+    --hb-accent: #2563eb;
+    --hb-sidebar: #1a2332;
+    --hb-sidebar-border: #2d3748;
+    --hb-surface: #ffffff;
+    --hb-bg: #f4f5f7;
+    --hb-border: #e2e5ea;
+    --hb-text: #1e293b;
+    --hb-text-muted: #64748b;
+    --hb-radius: 2px;
+    --hb-radius-sm: 0px;
+}
+
+/* Leaflet / карты — острые углы */
+.leaflet-container {
+    border-radius: var(--hb-radius);
+}
+
+/* Демо-аккаунты на странице входа */
+.demo-account-btn {
+    border-radius: var(--hb-radius);
+}

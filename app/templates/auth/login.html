@@ -5,34 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход — HotelBook</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/portal.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif']}}}}</script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['IBM Plex Sans','ui-sans-serif']},colors:{corporate:{700:'#1e3a5f',800:'#152a45'}}}}}</script>
 </head>
-<body class="bg-slate-900 min-h-screen flex font-sans">
+<body class="bg-[#1a2332] min-h-screen flex font-sans">
 
     <!-- Left panel — branding -->
-    <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-600 to-indigo-900 flex-col justify-between p-12 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-20 left-20 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-            <div class="absolute bottom-20 right-10 w-64 h-64 bg-indigo-300 rounded-full blur-3xl"></div>
+    <div class="hidden lg:flex w-1/2 bg-[#1e3a5f] flex-col justify-between p-12 border-r border-slate-700">
+        <div>
+            <div class="w-10 h-10 rounded-sm bg-white/10 border border-white/20 flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+            <div class="text-white text-2xl font-semibold">HotelBook</div>
+            <div class="text-slate-300 mt-2 text-base">Система управления отелями</div>
         </div>
-        <div class="relative">
-            <div class="text-4xl mb-3">🏨</div>
-            <div class="text-white text-3xl font-bold">HotelBook</div>
-            <div class="text-indigo-200 mt-2 text-lg">Система управления отелями</div>
-        </div>
-        <div class="relative space-y-6">
-            {% for icon, title, desc in [
-                ("📋", "Управление бронями", "Онлайн-бронирование с расчётом цены и проверкой доступности"),
-                ("👥", "Ролевой доступ", "Турист, сотрудник, менеджер и администратор в одной системе"),
-                ("📊", "Аналитика", "Дашборд с выручкой, загрузкой и статусом номеров"),
+        <div class="space-y-5">
+            {% for title, desc in [
+                ("Управление бронями", "Онлайн-бронирование с расчётом цены и проверкой доступности"),
+                ("Ролевой доступ", "Турист, сотрудник, менеджер и администратор в одной системе"),
+                ("Аналитика", "Дашборд с выручкой, загрузкой и статусом номеров"),
             ] %}
-            <div class="flex items-start gap-4">
-                <div class="text-2xl mt-0.5">{{ icon }}</div>
+            <div class="flex items-start gap-3 border-l-2 border-slate-400 pl-4">
                 <div>
-                    <div class="text-white font-semibold">{{ title }}</div>
-                    <div class="text-indigo-200 text-sm mt-0.5">{{ desc }}</div>
+                    <div class="text-white font-medium text-sm">{{ title }}</div>
+                    <div class="text-slate-400 text-sm mt-0.5">{{ desc }}</div>
                 </div>
             </div>
             {% endfor %}
@@ -40,65 +38,67 @@
     </div>
 
     <!-- Right panel — login form -->
-    <div class="flex-1 flex items-center justify-center p-8">
+    <div class="flex-1 flex items-center justify-center p-8 bg-[#f4f5f7]">
         <div class="w-full max-w-sm">
             <div class="lg:hidden text-center mb-8">
-                <div class="text-4xl mb-2">🏨</div>
-                <div class="text-white text-2xl font-bold">HotelBook</div>
+                <div class="w-10 h-10 rounded-sm bg-[#1e3a5f] flex items-center justify-center mx-auto mb-2">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <div class="text-slate-900 text-xl font-semibold">HotelBook</div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-2xl p-8">
-                <h2 class="text-xl font-bold text-slate-800 mb-1">Войти в систему</h2>
-                <p class="text-slate-400 text-sm mb-6">Введите логин и пароль для доступа</p>
+            <div class="bg-white rounded-sm border border-slate-200 p-8">
+                <h2 class="text-lg font-semibold text-slate-900 mb-1">Войти в систему</h2>
+                <p class="text-slate-500 text-sm mb-6">Введите логин и пароль для доступа</p>
 
                 {% if error %}
-                <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 flex items-center gap-2.5">
-                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-red-50 border border-red-200 rounded-sm px-4 py-3 mb-5 flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
-                    <span class="text-red-700 text-sm">{{ error }}</span>
+                    <span class="text-red-800 text-sm">{{ error }}</span>
                 </div>
                 {% endif %}
 
                 <form method="post" action="/auth/login" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Логин</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Логин</label>
                         <input type="text" name="login" required autofocus
-                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                               class="w-full border border-slate-300 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] transition-colors"
                                placeholder="Введите логин">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Пароль</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Пароль</label>
                         <input type="password" name="password" required
-                               class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                               class="w-full border border-slate-300 rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] transition-colors"
                                placeholder="••••••••">
                     </div>
                     <button type="submit"
-                            class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all mt-2">
-                        Войти →
+                            class="w-full bg-[#1e3a5f] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#152a45] transition-colors mt-2 border border-[#152a45]">
+                        Войти
                     </button>
                 </form>
 
                 <p class="text-center text-sm text-slate-500 mt-5">
                     Нет аккаунта?
-                    <a href="/auth/register" class="text-indigo-600 hover:underline font-medium">Создать аккаунт</a>
+                    <a href="/auth/register" class="text-[#1e3a5f] hover:underline font-medium">Создать аккаунт</a>
                 </p>
 
                 <!-- Demo credentials -->
-                <div class="mt-6 pt-5 border-t border-slate-100">
-                    <p class="text-xs font-medium text-slate-500 mb-3">Демо-аккаунты:</p>
+                <div class="mt-6 pt-5 border-t border-slate-200">
+                    <p class="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Демо-аккаунты</p>
                     <div class="grid grid-cols-2 gap-2">
-                        {% for role_icon, label, login_val, pwd in [
-                            ("👤", "Турист",     "tourist1", "tourist123"),
-                            ("🧹", "Сотрудник",  "cleaner1", "password123"),
-                            ("📋", "Менеджер",   "admin1",   "password123"),
-                            ("⚙️", "Администратор","admin2",  "password123"),
+                        {% for role_code, label, login_val, pwd in [
+                            ("T", "Турист",     "tourist1", "tourist123"),
+                            ("S", "Сотрудник",  "cleaner1", "password123"),
+                            ("M", "Менеджер",   "admin1",   "password123"),
+                            ("A", "Администратор","admin2",  "password123"),
                         ] %}
                         <button type="button" onclick="document.querySelector('[name=login]').value='{{ login_val }}';document.querySelector('[name=password]').value='{{ pwd }}';"
-                                class="text-left p-2.5 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 transition-all cursor-pointer">
-                            <div class="text-base leading-none mb-1">{{ role_icon }}</div>
-                            <div class="text-xs font-semibold text-slate-700">{{ label }}</div>
-                            <div class="text-xs text-slate-400 font-mono">{{ login_val }}</div>
+                                class="demo-account-btn text-left p-2.5 border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-colors cursor-pointer bg-white">
+                            <div class="text-xs font-semibold text-slate-500 mb-0.5">{{ role_code }}</div>
+                            <div class="text-xs font-semibold text-slate-800">{{ label }}</div>
+                            <div class="text-xs text-slate-400 font-mono mt-0.5">{{ login_val }}</div>
                         </button>
                         {% endfor %}
                     </div>

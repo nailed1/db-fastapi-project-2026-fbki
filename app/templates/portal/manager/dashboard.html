@@ -29,17 +29,16 @@
 
 <!-- KPI row -->
 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-    {% for icon, label, value, color in [
-        ("📋", "Активных броней",   stats.active_bookings,      "indigo"),
-        ("💰", "Выручка ₽",         stats.revenue|int,          "emerald"),
-        ("🧹", "Грязных номеров",   stats.dirty_rooms,          "amber"),
-        ("🔧", "Новых запросов",    stats.new_service_requests, "rose"),
-        ("📦", "Заявок на склад",   stats.new_replenish,        "violet"),
+    {% for label, value in [
+        ("Активных броней",   stats.active_bookings),
+        ("Выручка, ₽",         stats.revenue|int),
+        ("Грязных номеров",   stats.dirty_rooms),
+        ("Новых запросов",    stats.new_service_requests),
+        ("Заявок на склад",   stats.new_replenish),
     ] %}
     <div class="kpi-card">
-        <div class="text-xl mb-2">{{ icon }}</div>
-        <div class="text-2xl font-bold text-slate-800">{{ "{:,}".format(value|int) }}</div>
-        <div class="text-xs text-slate-400 mt-0.5">{{ label }}</div>
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{{ label }}</div>
+        <div class="text-2xl font-bold text-slate-900">{{ "{:,}".format(value|int) }}</div>
     </div>
     {% endfor %}
 </div>
@@ -49,7 +48,7 @@
     <!-- Service requests from Admin -->
     <div>
         <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-700">🔧 Запросы от Администратора</h2>
+            <h2 class="font-semibold text-slate-800">Запросы от администратора</h2>
             {% if stats.new_service_requests > 0 %}
             <span class="badge bg-rose-100 text-rose-600">{{ stats.new_service_requests }} новых</span>
             {% endif %}
@@ -88,7 +87,7 @@
     <!-- Replenishment from Staff -->
     <div>
         <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-slate-700">📦 Заявки на пополнение</h2>
+            <h2 class="font-semibold text-slate-800">Заявки на пополнение</h2>
             {% if stats.new_replenish > 0 %}
             <span class="badge bg-violet-100 text-violet-600">{{ stats.new_replenish }} новых</span>
             {% endif %}
@@ -132,7 +131,7 @@
 <!-- Refund requests -->
 <div class="mt-6">
     <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold text-slate-700">💸 Заявки на возврат</h2>
+        <h2 class="font-semibold text-slate-800">Заявки на возврат</h2>
         {% if refund_requests %}
         <span class="badge bg-rose-100 text-rose-600">{{ refund_requests|length }} новых</span>
         {% endif %}
@@ -149,11 +148,11 @@
             <div class="flex gap-2">
                 <form method="post" action="/portal/manager/refund/{{ r.id }}/resolve">
                     <input type="hidden" name="action" value="approve">
-                    <button type="submit" class="btn-primary py-1.5 text-xs">✓ Одобрить</button>
+                    <button type="submit" class="btn-primary py-1.5 text-xs">Одобрить</button>
                 </form>
                 <form method="post" action="/portal/manager/refund/{{ r.id }}/resolve">
                     <input type="hidden" name="action" value="reject">
-                    <button type="submit" class="btn-secondary text-rose-600 py-1.5 text-xs">✗ Отклонить</button>
+                    <button type="submit" class="btn-secondary text-slate-700 py-1.5 text-xs">Отклонить</button>
                 </form>
             </div>
         </div>

@@ -3,8 +3,14 @@
 {% block page_title %}Оставить отзыв{% endblock %}
 
 {% block sidebar_nav %}
-<a href="/portal/tourist/" class="sidebar-link">🏠 Главная</a>
-<a href="/portal/tourist/book" class="sidebar-link">+ Забронировать</a>
+<a href="/portal/tourist/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    Главная
+</a>
+<a href="/portal/tourist/book" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Забронировать
+</a>
 {% endblock %}
 
 {% block content %}
@@ -18,8 +24,8 @@
         </p>
 
         {% if has_review %}
-        <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 mb-5 text-sm">
-            ℹ️ Вы уже оставили отзыв — отправив форму снова, вы его обновите.
+        <div class="bg-slate-50 border border-slate-300 text-slate-700 rounded-sm px-4 py-3 mb-5 text-sm">
+            Вы уже оставили отзыв — повторная отправка обновит существующий.
         </div>
         {% endif %}
 
@@ -33,20 +39,20 @@
                             @click="rating = {{ i }}"
                             @mouseenter="hovered = {{ i }}"
                             @mouseleave="hovered = 0"
-                            class="text-4xl transition-transform hover:scale-110">
-                        <span x-show="(hovered || rating) >= {{ i }}" class="text-amber-400">★</span>
+                            class="text-3xl transition-colors">
+                        <span x-show="(hovered || rating) >= {{ i }}" class="text-slate-700">★</span>
                         <span x-show="(hovered || rating) < {{ i }}" class="text-slate-300">☆</span>
                     </button>
                     {% endfor %}
                 </div>
                 <input type="hidden" name="rating" :value="rating" required>
                 <p class="text-xs text-slate-400 mt-1" x-show="rating === 0">Нажмите на звёзды для оценки</p>
-                <p class="text-xs font-medium" x-show="rating > 0">
-                    <span x-show="rating === 1" class="text-rose-600">😞 Ужасно</span>
-                    <span x-show="rating === 2" class="text-orange-600">😕 Плохо</span>
-                    <span x-show="rating === 3" class="text-amber-600">🙂 Нормально</span>
-                    <span x-show="rating === 4" class="text-emerald-600">😊 Хорошо</span>
-                    <span x-show="rating === 5" class="text-emerald-600">🤩 Отлично!</span>
+                <p class="text-xs font-medium text-slate-600" x-show="rating > 0">
+                    <span x-show="rating === 1">Ужасно</span>
+                    <span x-show="rating === 2">Плохо</span>
+                    <span x-show="rating === 3">Нормально</span>
+                    <span x-show="rating === 4">Хорошо</span>
+                    <span x-show="rating === 5">Отлично</span>
                 </p>
             </div>
 
