@@ -86,7 +86,7 @@ async def available_rooms(
                 AND check_out > $2
           )
         ORDER BY rc.base_price
-    """, hotel_id, parsed_check_in, parsed_check_out)
+    """, parsed_hotel_id, parsed_check_in, parsed_check_out)
     
     return [dict(r) for r in rows]
 
