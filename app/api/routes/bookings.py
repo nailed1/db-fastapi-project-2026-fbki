@@ -1,6 +1,6 @@
 """Booking routes — CRUD + availability check."""
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -15,6 +15,7 @@ from hotel_utils import DateRange, calculate_price, discount_for_tier, is_availa
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 templates = Jinja2Templates(directory="app/templates")
 
+from typing import Optional
 
 @router.get("/", response_class=HTMLResponse)
 async def list_bookings(
@@ -57,10 +58,20 @@ async def new_booking_form(
 @router.get("/available-rooms")
 async def available_rooms(
     hotel_id: int,
-    check_in: date,
-    check_out: date,
+    check_in: Optional[str] = None,
+    check_out: Optional[str] = None,
     db: Database = Depends(get_db),
 ) -> list[dict]:
+    
+    if not check_in or not check_out:
+        return []
+
+    try:
+        parsed_check_in = datetime.strptime(check_in, "%Y-%m-%d").date()
+        parsed_check_out = datetime.strptime(check_out, "%Y-%m-%d").date()
+    except ValueError:
+        return []
+
     rows = await db.fetch("""
         SELECT r.id, r.room_number, rc.name AS category, rc.base_price
         FROM rooms r
@@ -69,12 +80,13 @@ async def available_rooms(
           AND r.room_condition = 'Исправно'
           AND r.id NOT IN (
               SELECT room_id FROM bookings
-              WHERE status = 'Подтверждено'
+              WHERE status IN ('Подтверждено', 'Ожидает оплаты')
                 AND check_in  < $3
                 AND check_out > $2
           )
         ORDER BY rc.base_price
-    """, hotel_id, check_in, check_out)
+    """, hotel_id, parsed_check_in, parsed_check_out)
+    
     return [dict(r) for r in rows]
 
 
