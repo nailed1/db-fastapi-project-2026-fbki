@@ -17,4 +17,11 @@ def create_payment(amount: float, booking_id: int, return_url: str) -> str:
         "description": f"Оплата бронирования №{booking_id}",
         "metadata": {"booking_id": booking_id},
     }, uuid.uuid4())
-    return payment.confirmation.confirmation_url
+    return payment.confirmation.confirmation_url, payment.id
+
+def create_refund(payment_id: str, amount: float) -> None:
+    import uuid
+    yookassa.Refund.create({
+        "payment_id": payment_id,
+        "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
+    }, uuid.uuid4())

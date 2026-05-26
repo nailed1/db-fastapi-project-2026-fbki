@@ -317,9 +317,12 @@ async def pay_booking(
 
     from app.payments import create_payment
     return_url = str(request.base_url) + f"portal/tourist/payment/callback?booking_id={booking_id}"
-    pay_url = create_payment(float(booking["total_price"]), booking_id, return_url)
+    pay_url, payment_id = create_payment(float(booking["total_price"]), booking_id, return_url)
+    await db.execute(
+        "UPDATE bookings SET yookassa_payment_id = $1 WHERE id = $2",
+        payment_id, booking_id
+    )
     return RedirectResponse(url=pay_url, status_code=303)
-
 
 @router.get("/payment/callback")
 async def payment_callback(booking_id: int) -> HTMLResponse:
@@ -354,6 +357,7 @@ async def cancel_booking(
         JOIN users u ON u.guest_id = g.id
         WHERE b.id = $1 AND u.id = $2
     """, booking_id, user.id)
+    
     if not own:
         raise HTTPException(404, "Бронирование не найдено")
     if own["status"] not in ("Подтверждено", "Ожидает оплаты"):
@@ -361,14 +365,26 @@ async def cancel_booking(
         resp = RedirectResponse(url="/portal/tourist/", status_code=303)
         flash(resp, "Это бронирование нельзя отменить", "warning")
         return resp
-
-    await db.execute("UPDATE bookings SET status = 'Отменено' WHERE id = $1", booking_id)
-    await db.execute(
-        "UPDATE guests SET total_spend = GREATEST(0, total_spend - $1) WHERE id = $2",
-        own["total_price"], own["guest_id"],
-    )
+    # после проверки статуса добавить разветвление
+    if own["status"] == "Ожидает оплаты":
+        # денег не было просто отменяем
+        await db.execute("UPDATE bookings SET status = 'Отменено' WHERE id = $1", booking_id)
+        await db.execute(
+            "UPDATE guests SET total_spend = GREATEST(0, total_spend - $1) WHERE id = $2",
+            own["total_price"], own["guest_id"],
+        )
+    else:
+        # оплачено создаём заявку на возврат
+        await db.execute("""
+            INSERT INTO refund_requests (booking_id, guest_id, amount)
+            VALUES ($1, $2, $3)
+        """, booking_id, own["guest_id"], own["total_price"])
+        # бронь не отменяем сразу ждём менеджера
 
     from app.auth.flash import flash
     resp = RedirectResponse(url="/portal/tourist/", status_code=303)
-    flash(resp, "Бронирование отменено", "info")
+    if own["status"] == "Ожидает оплаты":
+        flash(resp, "Бронирование отменено", "info")
+    else:
+        flash(resp, "Заявка на возврат отправлена менеджеру", "info")
     return resp

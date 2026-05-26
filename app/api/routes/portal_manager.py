@@ -55,11 +55,23 @@ async def dashboard(
         WHERE rr.hotel_id = $1
         ORDER BY rr.created_at DESC LIMIT 20
     """, user.hotel_id)
+    
+    refund_requests = await db.fetch("""
+    SELECT rr.id, rr.amount, rr.status, rr.created_at,
+           b.id AS booking_id, g.full_name AS guest_name
+    FROM refund_requests rr
+    JOIN bookings b ON b.id = rr.booking_id
+    JOIN guests g ON g.id = rr.guest_id
+    JOIN rooms r ON r.id = b.room_id
+    WHERE r.hotel_id = $1 AND rr.status = 'Новая'
+    ORDER BY rr.created_at DESC
+    """, user.hotel_id)
 
     return templates.TemplateResponse("portal/manager/dashboard.html", {
         "request": request, "current_user": user, "user": user, "stats": stats,
         "service_requests": service_requests,
         "replenish_requests": replenish_requests,
+        "refund_requests": refund_requests,
     })
 
 
@@ -153,4 +165,39 @@ async def update_replenishment(
         "UPDATE replenishment_requests SET status = $1 WHERE id = $2",
         status, req_id,
     )
+    return RedirectResponse(url="/portal/manager/", status_code=303)
+
+@router.post("/refund/{refund_id}/resolve", response_class=HTMLResponse)
+async def resolve_refund(
+    refund_id: int,
+    action: str = Form(...),  # "approve" или "reject"
+    user: CurrentUser = Depends(require_manager),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    from datetime import datetime
+    refund = await db.fetchrow("""
+        SELECT rr.*, b.yookassa_payment_id, b.id AS booking_id
+        FROM refund_requests rr
+        JOIN bookings b ON b.id = rr.booking_id
+        WHERE rr.id = $1
+    """, refund_id)
+
+    if action == "approve":
+        if refund["yookassa_payment_id"]:
+            from app.payments import create_refund
+            create_refund(refund["yookassa_payment_id"], float(refund["amount"]))
+        await db.execute(
+            "UPDATE bookings SET status = 'Отменено', payment_status = 'Возврат' WHERE id = $1",
+            refund["booking_id"]
+        )
+        await db.execute(
+            "UPDATE refund_requests SET status = 'Одобрена', resolved_at = $1, manager_id = $2 WHERE id = $3",
+            datetime.now(), user.id, refund_id
+        )
+    else:
+        await db.execute(
+            "UPDATE refund_requests SET status = 'Отклонена', resolved_at = $1, manager_id = $2 WHERE id = $3",
+            datetime.now(), user.id, refund_id
+        )
+
     return RedirectResponse(url="/portal/manager/", status_code=303)
