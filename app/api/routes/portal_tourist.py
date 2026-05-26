@@ -14,6 +14,8 @@ from app.auth.dependencies import CurrentUser, require_tourist
 from app.database import Database
 from hotel_utils import DateRange, calculate_price, discount_for_tier, is_available, tier_from_spend
 
+from app.auth.flash import flash
+
 router = APIRouter(prefix="/portal/tourist", tags=["tourist"])
 templates = Jinja2Templates(directory="app/templates")
 
@@ -361,7 +363,6 @@ async def cancel_booking(
     if not own:
         raise HTTPException(404, "Бронирование не найдено")
     if own["status"] not in ("Подтверждено", "Ожидает оплаты"):
-        from app.auth.flash import flash
         resp = RedirectResponse(url="/portal/tourist/", status_code=303)
         flash(resp, "Это бронирование нельзя отменить", "warning")
         return resp
@@ -374,6 +375,14 @@ async def cancel_booking(
             own["total_price"], own["guest_id"],
         )
     else:
+        existing_refund = await db.fetchrow(
+            "SELECT id FROM refund_requests WHERE booking_id = $1 AND status = 'Новая'",
+            booking_id
+        )
+        if existing_refund:
+            resp = RedirectResponse(url="/portal/tourist/", status_code=303)
+            flash(resp, "Заявка на возврат уже отправлена", "warning")
+            return resp
         # оплачено создаём заявку на возврат
         await db.execute("""
             INSERT INTO refund_requests (booking_id, guest_id, amount)
@@ -381,7 +390,6 @@ async def cancel_booking(
         """, booking_id, own["guest_id"], own["total_price"])
         # бронь не отменяем сразу ждём менеджера
 
-    from app.auth.flash import flash
     resp = RedirectResponse(url="/portal/tourist/", status_code=303)
     if own["status"] == "Ожидает оплаты":
         flash(resp, "Бронирование отменено", "info")
