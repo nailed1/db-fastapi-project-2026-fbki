@@ -102,7 +102,7 @@ async def create_booking(
     # Check no overlap
     existing_rows = await db.fetch("""
         SELECT check_in, check_out FROM bookings
-        WHERE room_id = $1 AND status = 'Подтверждено'
+        WHERE room_id = $1 AND status IN ('Подтверждено', 'Ожидает оплаты')
     """, room_id)
     requested = DateRange(check_in, check_out)
     occupied = [DateRange(r["check_in"], r["check_out"]) for r in existing_rows]

@@ -24,7 +24,7 @@ async def dashboard(
         SELECT h.id, h.name,
                COUNT(DISTINCT r.id)  AS total_rooms,
                COUNT(DISTINCT s.id)  AS total_staff,
-               COUNT(DISTINCT b.id) FILTER (WHERE b.status = 'Подтверждено') AS active_bookings
+               COUNT(DISTINCT b.id) FILTER (WHERE b.status IN ('Подтверждено', 'Ожидает оплаты')) AS active_bookings
         FROM hotels h
         LEFT JOIN rooms r    ON r.hotel_id = h.id
         LEFT JOIN staff s    ON s.hotel_id = h.id

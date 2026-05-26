@@ -15,7 +15,7 @@ templates = Jinja2Templates(directory="app/templates")
 async def dashboard(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
     hotel_stats = await db.fetch("""
         SELECT h.name,
-               COUNT(b.id) FILTER (WHERE b.status = 'Подтверждено') AS active_bookings,
+               COUNT(b.id) FILTER (WHERE b.status IN ('Подтверждено', 'Ожидает оплаты')) AS active_bookings,
                COALESCE(SUM(b.total_price) FILTER (WHERE b.status != 'Отменено'), 0) AS revenue,
                COUNT(r.id) FILTER (WHERE r.cleaning_status = 'Dirty') AS dirty_rooms
         FROM hotels h
