@@ -331,6 +331,57 @@ async def payment_callback(booking_id: int) -> HTMLResponse:
     return RedirectResponse(url=f"/portal/tourist/booking/{booking_id}", status_code=303)
 
 
+@router.get("/payment/mock", response_class=HTMLResponse)
+async def mock_payment_page(
+    booking_id: int,
+    payment_id: str,
+    request: Request,
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    booking = await db.fetchrow("""
+        SELECT b.id, b.total_price, b.payment_status
+        FROM bookings b
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not booking:
+        raise HTTPException(404, "Бронирование не найдено")
+    return templates.TemplateResponse("portal/tourist/mock_payment.html", {
+        "request": request,
+        "current_user": user,
+        "booking_id": booking_id,
+        "payment_id": payment_id,
+        "amount": booking["total_price"],
+    })
+
+
+@router.post("/payment/mock/confirm", response_class=HTMLResponse)
+async def mock_payment_confirm(
+    booking_id: int = Form(...),
+    payment_id: str = Form(...),
+    user: CurrentUser = Depends(require_tourist),
+    db: Database = Depends(get_db),
+) -> HTMLResponse:
+    own = await db.fetchrow("""
+        SELECT b.id FROM bookings b
+        JOIN guests g ON g.id = b.guest_id
+        JOIN users u ON u.guest_id = g.id
+        WHERE b.id = $1 AND u.id = $2
+    """, booking_id, user.id)
+    if not own:
+        raise HTTPException(404, "Бронирование не найдено")
+    await db.execute(
+        "UPDATE bookings SET payment_status = 'Оплачено', status = 'Подтверждено', yookassa_payment_id = $1 WHERE id = $2",
+        payment_id, booking_id,
+    )
+    resp = RedirectResponse(url=f"/portal/tourist/booking/{booking_id}", status_code=303)
+    from app.auth.flash import flash
+    flash(resp, "Оплата прошла успешно (тестовый режим)", "success")
+    return resp
+
+
 @router.post("/payment/webhook")
 async def payment_webhook(
     request: Request,

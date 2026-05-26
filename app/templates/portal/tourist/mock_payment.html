@@ -1,0 +1,66 @@
+{% extends "layouts/portal.html" %}
+{% block title %}Тестовая оплата{% endblock %}
+{% block page_title %}Тестовая оплата{% endblock %}
+{% block breadcrumb %}
+<p class="text-xs text-slate-500 mt-0.5">
+    <a href="/portal/tourist/" class="hover:text-corporate-700">Главная</a> /
+    <a href="/portal/tourist/booking/{{ booking_id }}" class="hover:text-corporate-700">Бронь #{{ booking_id }}</a> /
+    Оплата
+</p>
+{% endblock %}
+
+{% block sidebar_nav %}
+<a href="/portal/tourist/" class="sidebar-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    Главная
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="card p-8 text-center space-y-6">
+        <div class="flex items-center justify-center w-16 h-16 mx-auto bg-amber-100 rounded-full">
+            <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-bold text-slate-800">Тестовый режим оплаты</h2>
+            <p class="text-sm text-slate-500 mt-2">
+                ЮKassa не настроена. Эта страница симулирует оплату для локальной разработки.
+            </p>
+        </div>
+
+        <div class="bg-slate-50 rounded p-4 text-left space-y-2">
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Бронирование</span>
+                <span class="font-medium text-slate-800">#{{ booking_id }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Сумма</span>
+                <span class="font-bold text-slate-800">{{ "%.2f"|format(amount|float) }} ₽</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">ID платежа</span>
+                <span class="font-mono text-xs text-slate-600 truncate ml-4">{{ payment_id }}</span>
+            </div>
+        </div>
+
+        <form method="post" action="/portal/tourist/payment/mock/confirm" class="space-y-3">
+            <input type="hidden" name="booking_id" value="{{ booking_id }}">
+            <input type="hidden" name="payment_id" value="{{ payment_id }}">
+            <button type="submit"
+                class="w-full btn btn-primary py-3 text-base font-semibold">
+                Подтвердить оплату (тест)
+            </button>
+        </form>
+
+        <a href="/portal/tourist/booking/{{ booking_id }}"
+            class="block text-sm text-slate-500 hover:text-slate-700">
+            Отмена
+        </a>
+    </div>
+</div>
+{% endblock %}
