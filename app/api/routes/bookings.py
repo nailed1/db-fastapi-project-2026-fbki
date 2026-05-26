@@ -57,16 +57,17 @@ async def new_booking_form(
 
 @router.get("/available-rooms")
 async def available_rooms(
-    hotel_id: int,
+    hotel_id: Optional[str] = None,
     check_in: Optional[str] = None,
     check_out: Optional[str] = None,
     db: Database = Depends(get_db),
 ) -> list[dict]:
     
-    if not check_in or not check_out:
+    if not hotel_id or not check_in or not check_out:
         return []
 
     try:
+        parsed_hotel_id = int(hotel_id)
         parsed_check_in = datetime.strptime(check_in, "%Y-%m-%d").date()
         parsed_check_out = datetime.strptime(check_out, "%Y-%m-%d").date()
     except ValueError:
