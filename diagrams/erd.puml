@@ -71,6 +71,8 @@ entity bookings {
   check_out : DATE
   total_price : DECIMAL
   status : VARCHAR
+  payment_status : VARCHAR
+  yookassa_payment_id : VARCHAR
 }
 
 entity services {
@@ -88,6 +90,18 @@ entity service_orders {
   service_id : INT <<FK>>
   quantity : INT
   ordered_at : TIMESTAMP
+}
+
+entity refund_requests {
+  * id : SERIAL <<PK>>
+  --
+  booking_id : INT <<FK>>
+  guest_id : INT <<FK>>
+  amount : DECIMAL
+  status : VARCHAR
+  created_at : TIMESTAMP
+  resolved_at : TIMESTAMP
+  manager_id : INT <<FK>>
 }
 
 entity audit_log {
@@ -111,5 +125,8 @@ guests          ||--o{ guest_pref_link : has
 guest_preferences ||--o{ guest_pref_link : linked_to
 staff           ||--o{ audit_log       : generates
 hotels          ||--o{ staff           : employs
+bookings        ||--o{ refund_requests : has
+guests          ||--o{ refund_requests : requests
+staff           ||--o{ refund_requests : resolves
 
 @enduml

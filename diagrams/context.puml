@@ -10,7 +10,7 @@ actor "Администратор" as admin
 
 ' External systems
 rectangle "OpenStreetMap" as osm
-rectangle "Эквайринг\n(Payment)" as payment
+rectangle "YooKassa\n(Payment)" as payment
 rectangle "Лавка\n(Inventory)" as lavka
 
 ' Central system
@@ -18,12 +18,12 @@ rectangle "Booking\nManagement\nSystem" as bms #LightBlue {
 }
 
 ' Connections
-tourist --> bms : бронирование,\nпросмотр рейтинга,\nоплата
-manager --> bms : управление персоналом,\nрасписание броней
+tourist --> bms : бронирование,\nоплата, запрос возврата,\nпросмотр рейтинга
+manager --> bms : управление персоналом,\nрасписание броней,\nобработка возвратов
 cleaner --> bms : получение заданий,\nобновление статуса
 admin --> bms : настройка системы,\nуправление отелями
 
-bms --> payment : проведение оплаты
+bms --> payment : проведение оплаты\nи возвратов
 bms --> osm : геолокация отелей
 bms --> lavka : запрос на пополнение\nзапасов
 

@@ -16,6 +16,17 @@
 | Тесты | pytest + pytest-asyncio |
 | Контейнеризация | Docker + docker-compose |
 | CI/CD | GitHub Actions |
+| Оплата | YooKassa (webhook) |
+
+## Жизненный цикл брони
+
+```
+Ожидает оплаты → [оплата YooKassa] → Подтверждено → [запрос возврата] → Ожидает возврата → Отменено
+Ожидает оплаты → [отмена до оплаты] → Отменено
+Подтверждено   → [завершение] → Завершено
+```
+
+Поле `payment_status`: `Не оплачено` → `Оплачено` → `Возврат`.
 
 ## Быстрый старт
 
@@ -103,7 +114,13 @@ make lib-publish-test  # опубликовать hotel_utils на TestPyPI
 ├── migrations/                   # SQL-миграции
 │   ├── 001_init.sql              # схема БД (11 таблиц)
 │   ├── 002_seed.sql              # тестовые данные
-│   └── 003_roles_auth.sql        # роли, авторизация, отзывы, расписания
+│   ├── 003_roles_auth.sql        # роли, авторизация, отзывы, расписания
+│   ├── 004_coordinates.sql       # координаты отелей
+│   ├── 005_payment_status.sql    # колонка payment_status в bookings
+│   ├── 006_booking_status.sql    # ограничение статусов брони
+│   ├── 007_payment_id.sql        # yookassa_payment_id в bookings
+│   ├── 008_refund_requests.sql   # таблица запросов на возврат
+│   └── 009_refund_status.sql     # статус 'Ожидает возврата' в bookings
 ├── tests/
 │   ├── unit/                     # тесты hotel_utils (без БД)
 │   └── integration/              # тесты FastAPI routes

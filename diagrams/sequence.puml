@@ -1,12 +1,15 @@
 @startuml sequence
 !theme plain
-title Диаграмма последовательности — Бронирование номера
+title Диаграмма последовательности — Бронирование, оплата и возврат
 
 actor "Турист" as user
 participant "Web UI\n(HTMX)" as ui
 participant "FastAPI\n(App)" as app
 participant "hotel_utils" as lib
+participant "YooKassa" as pay
 database "PostgreSQL\n(DB)" as db
+
+== Выбор номера ==
 
 user -> ui : Выбрать отель, даты
 ui -> app : GET /bookings/available-rooms\n?hotel_id=1&check_in=...&check_out=...
@@ -15,20 +18,66 @@ db --> app : список свободных номеров
 app --> ui : JSON [{room_id, room_number, price}]
 ui --> user : Радиокнопки с номерами
 
+== Создание брони ==
+
 user -> ui : Выбрать номер, нажать "Забронировать"
-ui -> app : POST /bookings/\n{guest_id, room_id, check_in, check_out}
+ui -> app : POST /portal/tourist/book
 app -> db : SELECT guest loyalty_tier, total_spend
 db --> app : guest data
 app -> lib : calculate_price(base_price, dates, loyalty_discount)
 lib --> app : total_price
 app -> lib : is_available(DateRange, existing_bookings)
 lib --> app : True
-app -> db : INSERT INTO bookings
+app -> db : INSERT INTO bookings\n(status='Ожидает оплаты', payment_status='Не оплачено')
 db --> app : booking_id
-app -> db : UPDATE guests SET total_spend += total_price
+app -> db : UPDATE rooms SET cleaning_status='Dirty'
 app -> db : INSERT INTO audit_log
 db --> app : ok
-app --> ui : 303 Redirect → /bookings/
-ui --> user : Список бронирований\n(новая строка сверху)
+app --> ui : 303 Redirect → /portal/tourist/
+
+== Оплата (YooKassa) ==
+
+user -> ui : Нажать "Оплатить" на брони
+ui -> app : POST /portal/tourist/booking/{id}/pay
+app -> db : SELECT booking (total_price, payment_status)
+db --> app : booking data
+app -> pay : create_payment(amount, booking_id, return_url)
+pay --> app : {payment_url, payment_id}
+app -> db : UPDATE bookings SET yookassa_payment_id = $payment_id
+db --> app : ok
+app --> ui : 303 Redirect → payment_url
+ui --> user : Страница оплаты YooKassa
+user -> pay : Провести оплату
+pay -> app : POST /portal/tourist/payment/webhook\n{event: "payment.succeeded"}
+app -> db : UPDATE bookings SET\npayment_status='Оплачено', status='Подтверждено'
+db --> app : ok
+
+== Запрос возврата ==
+
+user -> ui : Нажать "Отменить" на подтверждённой брони
+ui -> app : POST /portal/tourist/booking/{id}/cancel
+app -> db : SELECT booking (status, total_price, guest_id)
+db --> app : booking (status='Подтверждено')
+app -> db : SELECT refund_requests\nWHERE booking_id=$id AND status='Новая'
+db --> app : пусто (нет дубля)
+app -> db : INSERT INTO refund_requests\n(booking_id, guest_id, amount, status='Новая')
+app -> db : UPDATE bookings SET status='Ожидает возврата'
+db --> app : ok
+app --> ui : 303 Redirect → /portal/tourist/
+
+== Обработка возврата менеджером ==
+
+actor "Менеджер" as mgr
+mgr -> ui : Открыть дашборд → Запросы возврата
+ui -> app : GET /portal/manager/
+app -> db : SELECT refund_requests WHERE status='Новая'
+db --> app : список запросов
+app --> ui : список запросов
+mgr -> ui : Нажать "Одобрить" / "Отклонить"
+ui -> app : POST /portal/manager/refund/{id}/approve\n(или /reject)
+app -> db : UPDATE refund_requests SET status='Одобрена', manager_id=$mgr
+app -> db : UPDATE bookings SET status='Отменено'
+db --> app : ok
+app --> ui : 303 Redirect → /portal/manager/
 
 @enduml
