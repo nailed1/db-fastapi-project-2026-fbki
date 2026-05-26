@@ -24,6 +24,7 @@
                     {% if booking.status == 'Подтверждено' %}bg-emerald-100 text-emerald-700
                     {% elif booking.status == 'Ожидает оплаты' %}bg-amber-100 text-amber-700
                     {% elif booking.status == 'Завершено' %}bg-blue-100 text-blue-700
+                    {% elif booking.status == 'Ожидает возврата' %}bg-purple-100 text-purple-700
                     {% else %}bg-rose-100 text-rose-600{% endif %}">
                     {{ booking.status }}
                 </span>

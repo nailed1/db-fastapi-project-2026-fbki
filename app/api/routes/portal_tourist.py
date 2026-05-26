@@ -388,6 +388,7 @@ async def cancel_booking(
             INSERT INTO refund_requests (booking_id, guest_id, amount)
             VALUES ($1, $2, $3)
         """, booking_id, own["guest_id"], own["total_price"])
+        await db.execute("UPDATE bookings SET status = 'Ожидает возврата' WHERE id = $1", booking_id)
         # бронь не отменяем сразу ждём менеджера
 
     resp = RedirectResponse(url="/portal/tourist/", status_code=303)

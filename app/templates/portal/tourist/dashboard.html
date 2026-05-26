@@ -181,6 +181,8 @@
                     <span class="badge bg-amber-100 text-amber-700">{{ b.status }}</span>
                 {% elif b.status == "Завершено" %}
                     <span class="badge bg-blue-100 text-blue-700">{{ b.status }}</span>
+                {% elif b.status == 'Ожидает возврата' %}
+                    <span class="badge bg-purple-100 text-purple-700">{{ b.status }}</span>
                 {% else %}
                     <span class="badge bg-rose-100 text-rose-600">{{ b.status }}</span>
                 {% endif %}

@@ -196,6 +196,10 @@ async def resolve_refund(
         )
     else:
         await db.execute(
+            "UPDATE bookings SET status = 'Подтверждено' WHERE id = $1",
+            refund["booking_id"]
+        )
+        await db.execute(
             "UPDATE refund_requests SET status = 'Отклонена', resolved_at = $1, manager_id = $2 WHERE id = $3",
             datetime.now(), user.id, refund_id
         )
