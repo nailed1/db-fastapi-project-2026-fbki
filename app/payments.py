@@ -1,6 +1,9 @@
 """ЮKassa payment helpers."""
+
 import uuid
+
 import yookassa
+
 from app.config import settings
 
 
@@ -10,18 +13,26 @@ def init_yookassa() -> None:
 
 
 def create_payment(amount: float, booking_id: int, return_url: str) -> str:
-    payment = yookassa.Payment.create({
-        "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
-        "confirmation": {"type": "redirect", "return_url": return_url},
-        "capture": True,
-        "description": f"Оплата бронирования №{booking_id}",
-        "metadata": {"booking_id": booking_id},
-    }, uuid.uuid4())
+    payment = yookassa.Payment.create(
+        {
+            "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
+            "confirmation": {"type": "redirect", "return_url": return_url},
+            "capture": True,
+            "description": f"Оплата бронирования №{booking_id}",
+            "metadata": {"booking_id": booking_id},
+        },
+        uuid.uuid4(),
+    )
     return payment.confirmation.confirmation_url, payment.id
+
 
 def create_refund(payment_id: str, amount: float) -> None:
     import uuid
-    yookassa.Refund.create({
-        "payment_id": payment_id,
-        "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
-    }, uuid.uuid4())
+
+    yookassa.Refund.create(
+        {
+            "payment_id": payment_id,
+            "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
+        },
+        uuid.uuid4(),
+    )

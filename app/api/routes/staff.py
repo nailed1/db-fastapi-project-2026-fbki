@@ -15,8 +15,12 @@ templates = Jinja2Templates(directory="app/templates")
 async def dashboard(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
     hotel_stats = await db.fetch("""
         SELECT h.name,
-               COUNT(b.id) FILTER (WHERE b.status IN ('Подтверждено', 'Ожидает оплаты')) AS active_bookings,
-               COALESCE(SUM(b.total_price) FILTER (WHERE b.status != 'Отменено'), 0) AS revenue,
+               COUNT(b.id) FILTER (
+                   WHERE b.status IN ('Подтверждено', 'Ожидает оплаты')
+               ) AS active_bookings,
+               COALESCE(
+                   SUM(b.total_price) FILTER (WHERE b.status != 'Отменено'), 0
+               ) AS revenue,
                COUNT(r.id) FILTER (WHERE r.cleaning_status = 'Dirty') AS dirty_rooms
         FROM hotels h
         LEFT JOIN rooms r    ON r.hotel_id = h.id
@@ -32,15 +36,20 @@ async def dashboard(request: Request, db: Database = Depends(get_db)) -> HTMLRes
         JOIN hotels h ON h.id = r.hotel_id
         ORDER BY b.id DESC LIMIT 10
     """)
-    return templates.TemplateResponse("manager/dashboard.html", {
-        "request": request,
-        "hotel_stats": hotel_stats,
-        "recent_bookings": recent_bookings,
-    })
+    return templates.TemplateResponse(
+        "manager/dashboard.html",
+        {
+            "request": request,
+            "hotel_stats": hotel_stats,
+            "recent_bookings": recent_bookings,
+        },
+    )
 
 
 @router.get("/cleaning", response_class=HTMLResponse)
-async def cleaning_tasks(request: Request, db: Database = Depends(get_db)) -> HTMLResponse:
+async def cleaning_tasks(
+    request: Request, db: Database = Depends(get_db)
+) -> HTMLResponse:
     tasks = await db.fetch("""
         SELECT r.id, r.room_number, r.cleaning_status, h.name AS hotel_name
         FROM rooms r

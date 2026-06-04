@@ -1,4 +1,4 @@
-"""hotel_utils — pricing, loyalty, and availability utilities for hotel booking systems."""
+"""hotel_utils — pricing, loyalty, availability for hotel booking."""
 
 from hotel_utils.availability import DateRange, is_available, nights_count
 from hotel_utils.loyalty import LoyaltyTier, discount_for_tier, tier_from_spend

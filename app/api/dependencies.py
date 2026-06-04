@@ -3,7 +3,7 @@
 from typing import AsyncGenerator
 
 import asyncpg
-from fastapi import Depends, Request
+from fastapi import Request
 
 from app.database import Database, get_pool
 

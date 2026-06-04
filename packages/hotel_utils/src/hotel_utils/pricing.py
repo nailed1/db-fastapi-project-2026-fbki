@@ -3,7 +3,6 @@
 from datetime import date
 from decimal import Decimal
 
-
 # Peak months: June–August, December
 _PEAK_MONTHS = {6, 7, 8, 12}
 _SHOULDER_MONTHS = {3, 4, 5, 9, 10, 11}

@@ -21,33 +21,47 @@ async def dashboard(
     db: Database = Depends(get_db),
 ) -> HTMLResponse:
     # Cleaning tasks for this staff member's hotel
-    dirty_rooms = await db.fetch("""
+    dirty_rooms = await db.fetch(
+        """
         SELECT r.id, r.room_number, r.cleaning_status, h.name AS hotel_name
         FROM rooms r JOIN hotels h ON h.id = r.hotel_id
         WHERE r.hotel_id = $1 AND r.cleaning_status IN ('Dirty','Cleaning')
         ORDER BY r.room_number
-    """, user.hotel_id)
+    """,
+        user.hotel_id,
+    )
 
     # My replenishment requests
-    my_requests = await db.fetch("""
+    my_requests = await db.fetch(
+        """
         SELECT id, item_name, quantity, unit, status, created_at
         FROM replenishment_requests
         WHERE staff_id = $1
         ORDER BY created_at DESC LIMIT 10
-    """, user.id)
+    """,
+        user.id,
+    )
 
     # Today's schedule
-    schedule = await db.fetchrow("""
+    schedule = await db.fetchrow(
+        """
         SELECT shift, note FROM staff_schedules
         WHERE staff_id = $1 AND work_date = CURRENT_DATE
-    """, user.id)
+    """,
+        user.id,
+    )
 
-    return templates.TemplateResponse("portal/staff/dashboard.html", {
-        "request": request, "current_user": user, "user": user,
-        "dirty_rooms": dirty_rooms,
-        "my_requests": my_requests,
-        "schedule": schedule,
-    })
+    return templates.TemplateResponse(
+        "portal/staff/dashboard.html",
+        {
+            "request": request,
+            "current_user": user,
+            "user": user,
+            "dirty_rooms": dirty_rooms,
+            "my_requests": my_requests,
+            "schedule": schedule,
+        },
+    )
 
 
 @router.post("/clean/{room_id}", response_class=HTMLResponse)
@@ -58,7 +72,8 @@ async def mark_clean(
 ) -> HTMLResponse:
     await db.execute(
         "UPDATE rooms SET cleaning_status = 'Clean' WHERE id = $1 AND hotel_id = $2",
-        room_id, user.hotel_id,
+        room_id,
+        user.hotel_id,
     )
     return RedirectResponse(url="/portal/staff/", status_code=303)
 
@@ -71,8 +86,17 @@ async def request_replenishment(
     user: CurrentUser = Depends(require_staff),
     db: Database = Depends(get_db),
 ) -> HTMLResponse:
-    await db.execute("""
-        INSERT INTO replenishment_requests (staff_id, hotel_id, item_name, quantity, unit)
+    await db.execute(
+        """
+        INSERT INTO replenishment_requests (
+            staff_id, hotel_id, item_name, quantity, unit
+        )
         VALUES ($1, $2, $3, $4, $5)
-    """, user.id, user.hotel_id, item_name, quantity, unit)
+    """,
+        user.id,
+        user.hotel_id,
+        item_name,
+        quantity,
+        unit,
+    )
     return RedirectResponse(url="/portal/staff/", status_code=303)

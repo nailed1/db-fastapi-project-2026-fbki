@@ -41,7 +41,9 @@ async def update_cleaning(
 ) -> HTMLResponse:
     valid = {"Clean", "Dirty", "Cleaning"}
     if status not in valid:
-        raise HTTPException(status_code=400, detail=f"Invalid status. Choose from {valid}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid status. Choose from {valid}"
+        )
     await db.execute(
         "UPDATE rooms SET cleaning_status = $1 WHERE id = $2", status, room_id
     )

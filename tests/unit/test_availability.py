@@ -3,7 +3,6 @@
 from datetime import date
 
 import pytest
-
 from hotel_utils.availability import DateRange, is_available, nights_count
 
 

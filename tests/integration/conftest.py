@@ -1,10 +1,8 @@
 """Integration test fixtures — spins up a real test DB via docker-compose."""
 
-import asyncio
 from typing import AsyncGenerator
 
 import asyncpg
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 

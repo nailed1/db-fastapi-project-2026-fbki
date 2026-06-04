@@ -8,9 +8,17 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api.routes import bookings, guests, rooms, staff
 from app.api.routes import auth as auth_router
-from app.api.routes import portal_tourist, portal_staff, portal_manager, portal_admin
+from app.api.routes import (
+    bookings,
+    guests,
+    portal_admin,
+    portal_manager,
+    portal_staff,
+    portal_tourist,
+    rooms,
+    staff,
+)
 from app.auth.dependencies import CurrentUser, get_current_user
 from app.database import close_pool, get_pool
 
@@ -18,6 +26,7 @@ from app.database import close_pool, get_pool
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from app.payments import init_yookassa
+
     init_yookassa()
     await get_pool()
     yield
@@ -27,12 +36,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Hotel Booking Management",
     version="0.1.0",
-    description="Hotel booking system with rooms, guests, staff and services management.",
+    description="Hotel booking: rooms, guests, staff, services.",
     lifespan=lifespan,
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+
 
 # Inject current_user into every template context automatically
 @app.middleware("http")
@@ -46,7 +56,7 @@ _orig_response = templates.TemplateResponse
 
 
 def _patched_response(name: str, context: dict, *args, **kwargs):  # type: ignore[no-untyped-def]
-    # current_user is injected per route via Depends; templates that don't use it just ignore it
+    # current_user via Depends; unused in templates is OK
     return _orig_response(name, context, *args, **kwargs)
 
 
@@ -70,7 +80,10 @@ async def index(
 ) -> HTMLResponse:
     if current_user:
         from app.api.routes.auth import _home_for
-        return RedirectResponse(url=_home_for(current_user.system_role), status_code=302)
+
+        return RedirectResponse(
+            url=_home_for(current_user.system_role), status_code=302
+        )
     return templates.TemplateResponse(
         "index.html", {"request": request, "current_user": current_user}
     )

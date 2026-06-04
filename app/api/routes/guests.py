@@ -48,8 +48,14 @@ async def create_guest(
     email: str = Form(""),
     db: Database = Depends(get_db),
 ) -> HTMLResponse:
-    await db.execute("""
+    await db.execute(
+        """
         INSERT INTO guests (full_name, passport, phone, email)
         VALUES ($1, $2, $3, $4)
-    """, full_name, passport, phone or None, email or None)
+    """,
+        full_name,
+        passport,
+        phone or None,
+        email or None,
+    )
     return RedirectResponse(url="/guests/", status_code=303)

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, field_validator
 
-
 # Hotels
+
 
 class HotelOut(BaseModel):
     id: int
@@ -20,6 +20,7 @@ class HotelOut(BaseModel):
 
 # Room categories
 
+
 class RoomCategoryOut(BaseModel):
     id: int
     name: str
@@ -28,6 +29,7 @@ class RoomCategoryOut(BaseModel):
 
 
 # Rooms
+
 
 class RoomOut(BaseModel):
     id: int
@@ -41,6 +43,7 @@ class RoomOut(BaseModel):
 
 
 # Guests
+
 
 class GuestCreate(BaseModel):
     full_name: str
@@ -67,6 +70,7 @@ class GuestOut(BaseModel):
 
 
 # Bookings
+
 
 class BookingCreate(BaseModel):
     guest_id: int
@@ -98,6 +102,7 @@ class BookingOut(BaseModel):
 
 # Services
 
+
 class ServiceOut(BaseModel):
     id: int
     name: str
@@ -112,6 +117,7 @@ class ServiceOrderCreate(BaseModel):
 
 
 # Staff
+
 
 class StaffOut(BaseModel):
     id: int

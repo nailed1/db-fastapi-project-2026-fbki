@@ -4,7 +4,6 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-
 from hotel_utils.pricing import calculate_price, seasonal_multiplier
 
 
@@ -27,7 +26,7 @@ def test_seasonal_multiplier_low():
 def test_calculate_price_basic():
     price = calculate_price(
         base_price=Decimal("3500"),
-        check_in=date(2025, 5, 1),   # shoulder → 1.00
+        check_in=date(2025, 5, 1),  # shoulder → 1.00
         check_out=date(2025, 5, 5),  # 4 nights
     )
     assert price == Decimal("14000.00")

@@ -5,12 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+import asyncpg
 from fastapi import Cookie, Depends, HTTPException, Request, status
-from fastapi.responses import RedirectResponse
 
 from app.auth.jwt import decode_token
 from app.database import Database, get_pool
-import asyncpg
 
 # System role derived from DB role field
 STAFF_ROLES = {"Горничная", "Уборщик", "Сантехник", "Бармен", "Техник"}
@@ -63,12 +62,15 @@ async def get_current_user(
         return None
 
     if user_type == "tourist":
-        row = await db.fetchrow("""
+        row = await db.fetchrow(
+            """
             SELECT u.id, u.login, g.full_name
             FROM users u
             JOIN guests g ON g.id = u.guest_id
             WHERE u.id = $1
-        """, int(user_id))
+        """,
+            int(user_id),
+        )
         if not row:
             return None
         return CurrentUser(
@@ -78,10 +80,13 @@ async def get_current_user(
             system_role="tourist",
         )
     else:
-        row = await db.fetchrow("""
+        row = await db.fetchrow(
+            """
             SELECT id, login, full_name, role, hotel_id
             FROM staff WHERE id = $1
-        """, int(user_id))
+        """,
+            int(user_id),
+        )
         if not row:
             return None
         return CurrentUser(
@@ -98,7 +103,9 @@ async def require_tourist(
     user: CurrentUser | None = Depends(get_current_user),
 ) -> CurrentUser:
     if not user or user.system_role != "tourist":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tourist access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Tourist access required"
+        )
     return user
 
 
@@ -106,7 +113,9 @@ async def require_staff(
     user: CurrentUser | None = Depends(get_current_user),
 ) -> CurrentUser:
     if not user or user.system_role not in ("staff", "manager", "admin"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Staff access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Staff access required"
+        )
     return user
 
 
@@ -114,7 +123,9 @@ async def require_manager(
     user: CurrentUser | None = Depends(get_current_user),
 ) -> CurrentUser:
     if not user or user.system_role not in ("manager", "admin"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Manager access required"
+        )
     return user
 
 
@@ -122,5 +133,7 @@ async def require_admin(
     user: CurrentUser | None = Depends(get_current_user),
 ) -> CurrentUser:
     if not user or user.system_role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     return user
