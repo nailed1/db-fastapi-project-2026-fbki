@@ -1,5 +1,5 @@
 .PHONY: install dev test lint fmt docs docker-up docker-down migrate seed clean \
-	db-test-create migrate-test test-db-setup
+	db-test-create migrate-test test-db-setup setup-passwords
 
 # ── Setup ──────────────────────────────────────────────────────────────────────
 install:
@@ -56,6 +56,10 @@ docker-logs:
 # ── Database ───────────────────────────────────────────────────────────────────
 migrate:
 	poetry run python -m app.db.migrate
+
+# Заменить placeholder-хеши staff на bcrypt (как docker/entrypoint.sh)
+setup-passwords:
+	poetry run python -m app.db.setup_passwords
 
 # Тестовая БД hotel_test (как в CI). docker-up поднимает только hotel_db.
 db-test-create:

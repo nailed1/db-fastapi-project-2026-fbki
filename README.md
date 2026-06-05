@@ -40,14 +40,32 @@ make docker-up
 # 3. Применить миграции (включая тестовые данные — migrations/002_seed.sql)
 make migrate
 
-# 4. Запустить сервер
+# 4. Демо-пароли для staff (в Docker это делает entrypoint.sh автоматически)
+make setup-passwords
+
+# 5. Запустить сервер
 make dev
 # → http://localhost:8000
+# → API: http://localhost:8000/docs
 ```
+
+## Демо-аккаунты
+
+После `make migrate` и `make setup-passwords` (локально) или `make docker-up` (контейнер):
+
+| Роль | Логин | Пароль |
+|------|-------|--------|
+| Турист | `tourist1` | `tourist123` |
+| Сотрудник | `cleaner1` | `password123` |
+| Менеджер | `admin1` | `password123` |
+| Администратор | `admin2` | `password123` |
+
+Вход: http://localhost:8000/auth/login
 
 ## Команды
 
 ```bash
+make setup-passwords  # bcrypt для staff после migrate (локальный dev)
 make test-db-setup # создать hotel_test + миграции (после make docker-up)
 make test          # все тесты (после make test-db-setup)
 make test-unit     # только unit-тесты (без БД)
