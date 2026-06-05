@@ -195,7 +195,7 @@ async def review_form(
 ) -> HTMLResponse:
     booking = await db.fetchrow(
         """
-        SELECT b.id, b.status, b.check_out, h.id AS hotel_id, h.name AS hotel_name,
+        SELECT b.id, b.status, b.check_in, b.check_out, h.id AS hotel_id, h.name AS hotel_name,
                r.room_number
         FROM bookings b
         JOIN guests g ON g.id = b.guest_id
