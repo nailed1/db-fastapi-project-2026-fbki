@@ -1,4 +1,5 @@
-.PHONY: install dev test lint fmt docs docker-up docker-down migrate seed clean
+.PHONY: install dev test lint fmt docs docker-up docker-down migrate seed clean \
+	db-test-create migrate-test test-db-setup
 
 # ── Setup ──────────────────────────────────────────────────────────────────────
 install:
@@ -38,21 +39,33 @@ docs-clean:
 	rm -rf docs/_build
 
 # ── Docker ─────────────────────────────────────────────────────────────────────
+COMPOSE := docker compose -f docker/docker-compose.yml
+
 docker-up:
-	docker compose -f docker/docker-compose.yml up -d
+	$(COMPOSE) up -d
 
 docker-down:
-	docker compose -f docker/docker-compose.yml down
+	$(COMPOSE) down
 
 docker-build:
-	docker compose -f docker/docker-compose.yml build
+	$(COMPOSE) build
 
 docker-logs:
-	docker compose -f docker/docker-compose.yml logs -f app
+	$(COMPOSE) logs -f app
 
 # ── Database ───────────────────────────────────────────────────────────────────
 migrate:
 	poetry run python -m app.db.migrate
+
+# Тестовая БД hotel_test (как в CI). docker-up поднимает только hotel_db.
+db-test-create:
+	-$(COMPOSE) exec -T db psql -U hotel_user -d hotel_db -c "CREATE DATABASE hotel_test;"
+
+migrate-test:
+	DATABASE_URL=$(TEST_DATABASE_URL) poetry run python -m app.db.migrate
+
+test-db-setup: db-test-create migrate-test
+	@echo "hotel_test ready — run: make test-integration"
 
 seed:
 	poetry run python -m app.db.seed

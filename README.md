@@ -48,7 +48,8 @@ make dev
 ## Команды
 
 ```bash
-make test          # все тесты (нужны Postgres hotel_test + make migrate)
+make test-db-setup # создать hotel_test + миграции (после make docker-up)
+make test          # все тесты (после make test-db-setup)
 make test-unit     # только unit-тесты (без БД)
 make test-integration  # интеграционные (тот же DATABASE_URL, что в CI)
 make lint          # ruff + mypy
