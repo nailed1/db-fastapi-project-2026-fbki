@@ -34,7 +34,8 @@ jobs:
           python -c "import hotel_utils, pathlib; p = pathlib.Path(hotel_utils.__file__).resolve(); assert 'site-packages' in str(p), p"
 
       - name: Run unit tests against TestPyPI wheel
-        run: pytest tests/unit -v
+        # pyproject.toml addopts require pytest-cov; this job only pip-installs pytest
+        run: pytest tests/unit -v -o addopts=
 
   test:
     runs-on: ubuntu-latest
