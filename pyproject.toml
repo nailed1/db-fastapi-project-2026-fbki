@@ -2,7 +2,10 @@
 name = "hotel-booking"
 version = "0.1.0"
 description = "Hotel booking management system"
-authors = ["Your Name <you@example.com>"]
+authors = [
+    "Voxin,
+    "nailed1"
+]
 readme = "README.md"
 packages = [{ include = "app" }]
 

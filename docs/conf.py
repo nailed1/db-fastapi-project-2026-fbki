@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../packages/hotel_utils/src"))
 
 project = "Hotel Booking"
-copyright = "2025, Your Name"
-author = "Your Name"
+copyright = '2026, Voxin, nailed1'
+author = 'Voxin, nailed1'
 release = "0.1.0"
 
 extensions = [

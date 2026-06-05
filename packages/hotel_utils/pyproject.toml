@@ -2,11 +2,11 @@
 name = "hotel-utils"
 version = "0.1.0"
 description = "Utility library for hotel booking systems: pricing, loyalty tiers, availability"
-authors = ["Your Name <you@example.com>"]
+authors = ["Voxin", "nailed1"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/yourname/hotel-utils"
-repository = "https://github.com/yourname/hotel-utils"
+homepage = "https://github.com/nailed1/db-fastapi-project-2026-fbki"
+repository = "https://github.com/nailed1/db-fastapi-project-2026-fbki"
 keywords = ["hotel", "booking", "pricing", "loyalty"]
 packages = [{ include = "hotel_utils", from = "src" }]
 
