@@ -37,13 +37,10 @@ poetry install
 # 2. Запустить PostgreSQL
 make docker-up
 
-# 3. Применить миграции
+# 3. Применить миграции (включая тестовые данные — migrations/002_seed.sql)
 make migrate
 
-# 4. Загрузить тестовые данные
-make seed
-
-# 5. Запустить сервер
+# 4. Запустить сервер
 make dev
 # → http://localhost:8000
 ```
