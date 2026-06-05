@@ -1,26 +1,29 @@
-"""Integration test fixtures — spins up a real test DB via docker-compose."""
+"""Integration tests: PostgreSQL with migrations (CI / make test-integration)."""
 
+import os
 from typing import AsyncGenerator
 
-import asyncpg
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
+# Default test DB when DATABASE_URL is unset (CI sets this at job level).
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql+asyncpg://hotel_user:hotel_pass@localhost:5432/hotel_test",
+)
 
-TEST_DSN = "postgresql://hotel_user:hotel_pass@localhost:5432/hotel_test"
-
-
-@pytest_asyncio.fixture(scope="session")
-async def db_pool() -> AsyncGenerator[asyncpg.Pool, None]:
-    pool = await asyncpg.create_pool(dsn=TEST_DSN, min_size=1, max_size=5)
-    yield pool
-    await pool.close()
+from app.database import close_pool  # noqa: E402
+from app.main import app  # noqa: E402
 
 
 @pytest_asyncio.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        yield ac
+    # Сброс пула между тестами — иначе asyncpg привязан к закрытому event loop.
+    await close_pool()
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+        ) as ac:
+            yield ac
+    await close_pool()

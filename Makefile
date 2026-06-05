@@ -9,14 +9,17 @@ dev:
 	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # ── Quality ────────────────────────────────────────────────────────────────────
+# Same DATABASE_URL as CI (Postgres hotel_test + migrations applied).
+TEST_DATABASE_URL ?= postgresql+asyncpg://hotel_user:hotel_pass@localhost:5432/hotel_test
+
 test:
-	poetry run pytest
+	DATABASE_URL=$(TEST_DATABASE_URL) poetry run pytest
 
 test-unit:
 	poetry run pytest tests/unit -v
 
 test-integration:
-	poetry run pytest tests/integration -v
+	DATABASE_URL=$(TEST_DATABASE_URL) poetry run pytest tests/integration -v
 
 lint:
 	poetry run ruff check .

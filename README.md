@@ -51,8 +51,9 @@ make dev
 ## Команды
 
 ```bash
-make test          # запустить все тесты
+make test          # все тесты (нужны Postgres hotel_test + make migrate)
 make test-unit     # только unit-тесты (без БД)
+make test-integration  # интеграционные (тот же DATABASE_URL, что в CI)
 make lint          # ruff + mypy
 make fmt           # автоформатирование
 make docs          # собрать Sphinx документацию

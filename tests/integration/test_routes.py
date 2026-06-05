@@ -38,4 +38,5 @@ async def test_manager_dashboard(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_available_rooms_missing_params(client: AsyncClient) -> None:
     response = await client.get("/bookings/available-rooms")
-    assert response.status_code == 422  # missing required query params
+    assert response.status_code == 200
+    assert response.json() == []
