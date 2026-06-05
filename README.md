@@ -57,6 +57,15 @@ make docs          # собрать Sphinx документацию
 make lib-publish-test  # опубликовать hotel_utils на TestPyPI
 ```
 
+## Документация
+
+| Что | Где |
+|-----|-----|
+| **API (эндпоинты)** | Swagger UI после `make dev` → http://localhost:8000/docs |
+| Обзор, `hotel_utils`, диаграммы | Sphinx: `make docs` → `docs/_build/html/index.html` |
+
+Список маршрутов в Sphinx намеренно не ведётся, он берётся из OpenAPI, чтобы не расходиться с кодом.
+
 ## Структура проекта
 
 ```
