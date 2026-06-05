@@ -10,6 +10,32 @@ env:
   DATABASE_URL: postgresql+asyncpg://hotel_user:hotel_pass@localhost:5432/hotel_test
 
 jobs:
+  hotel-utils-testpypi:
+    name: hotel-utils (TestPyPI)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install hotel-utils from TestPyPI
+        run: |
+          VERSION=$(grep '^version = ' packages/hotel_utils/pyproject.toml | cut -d'"' -f2)
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -i https://test.pypi.org/simple/ "hotel-utils==${VERSION}"
+
+      - name: Verify package origin
+        run: |
+          python -c "import hotel_utils, pathlib; p = pathlib.Path(hotel_utils.__file__).resolve(); assert 'site-packages' in str(p), p"
+
+      - name: Run unit tests against TestPyPI wheel
+        run: pytest tests/unit -v
+
   test:
     runs-on: ubuntu-latest
 

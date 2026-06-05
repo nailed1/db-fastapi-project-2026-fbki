@@ -57,6 +57,8 @@ make docs          # собрать Sphinx документацию
 make lib-publish-test  # опубликовать hotel_utils на TestPyPI
 ```
 
+CI отдельно проверяет установку `hotel-utils` с TestPyPI (job `hotel-utils-testpypi`) и гоняет `tests/unit` против опубликованного wheel.
+
 ## Документация
 
 | Что | Где |
